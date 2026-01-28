@@ -1,32 +1,35 @@
 'use client';
-import { useState, FormEvent } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
+import { Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('mdesaalli74@gmail.com');
-  const [password, setPassword] = useState('mdesa1111');
+  const email = 'mdesaalli74@gmail.com';
+  const password = 'mdesa1111';
   const { adminLogin } = useApp();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = async (e: FormEvent) => {
-    e.preventDefault();
-    const success = await adminLogin(email, password);
-    if (success) {
-      router.push('/admin');
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Invalid credentials. Please try again.',
-      });
+  useEffect(() => {
+    const handleLogin = async () => {
+      const success = await adminLogin(email, password);
+      if (success) {
+        router.push('/admin');
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Login Failed',
+          description: 'Automatic login failed. Please check credentials.',
+        });
+      }
+    };
+    if (adminLogin) {
+        handleLogin();
     }
-  };
+  }, [adminLogin, router, toast]);
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
@@ -38,33 +41,10 @@ export default function AdminLoginPage() {
           <CardDescription className="text-gray-500 italic">Master Control Panel - Secure Access</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Input
-                id="email"
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full p-4 h-12 bg-white/5 rounded-xl border border-white/10 outline-none focus:border-primary"
-              />
+            <div className="flex flex-col items-center justify-center space-y-4 py-8">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p className="text-gray-400">Attempting secure login...</p>
             </div>
-            <div className="space-y-2">
-              <Input
-                id="password"
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full p-4 h-12 bg-white/5 rounded-xl border border-white/10 outline-none focus:border-primary"
-              />
-            </div>
-            <Button type="submit" className="w-full font-bold text-lg h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 transition-opacity">
-              Secure Login
-            </Button>
-          </form>
         </CardContent>
       </Card>
     </div>
