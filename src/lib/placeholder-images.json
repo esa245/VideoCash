@@ -1,3 +1,64 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "video-ad-1",
+      "description": "Premium Crypto Ad",
+      "imageUrl": "https://images.unsplash.com/photo-1620778185674-ad6058ab908b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjcnlwdG8lMjBjdXJyZW5jeXxlbnwwfHx8fDE3Njk1ODE4ODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "crypto currency"
+    },
+    {
+      "id": "video-ad-2",
+      "description": "Tesla Drive Promo",
+      "imageUrl": "https://images.unsplash.com/photo-1594535182308-8ffefbb661e1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlbGVjdHJpYyUyMGNhcnxlbnwwfHx8fDE3Njk1MDQ4NDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "electric car"
+    },
+    {
+      "id": "video-ad-3",
+      "description": "Amazon Deals Ad",
+      "imageUrl": "https://images.unsplash.com/photo-1713646778050-2213b4140e6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxvbmxpbmUlMjBzaG9wcGluZ3xlbnwwfHx8fDE3Njk1MDIyNjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "online shopping"
+    },
+    {
+      "id": "video-ad-4",
+      "description": "Gaming Trailer",
+      "imageUrl": "https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dmlkZW8lMjBnYW1lfGVufDB8fHx8MTc2OTU4MTg3OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "video game"
+    },
+    {
+      "id": "video-ad-5",
+      "description": "Binance Wallet Ad",
+      "imageUrl": "https://images.unsplash.com/photo-1613919517761-0d9e719d3244?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiaXRjb2luJTIwd2FsbGV0fGVufDB8fHx8MTc2OTU4MTg4MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bitcoin wallet"
+    },
+    {
+      "id": "video-ad-6",
+      "description": "App Install Clip",
+      "imageUrl": "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtb2JpbGUlMjBhcHB8ZW58MHx8fHwxNzY5NDczNDQyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mobile app"
+    },
+    {
+      "id": "video-ad-7",
+      "description": "Short Movie Teaser",
+      "imageUrl": "https://images.unsplash.com/photo-1529798856831-427dfd0a1ab1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtb3ZpZSUyMGZpbG18ZW58MHx8fHwxNzY5NTgxODgwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "movie film"
+    },
+    {
+      "id": "video-ad-8",
+      "description": "Finance Survey Ad",
+      "imageUrl": "https://images.unsplash.com/photo-1744782211816-c5224434614f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxmaW5hbmNpYWwlMjBjaGFydHxlbnwwfHx8fDE3Njk0OTI4MjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "financial chart"
+    },
+    {
+      "id": "video-ad-9",
+      "description": "Global News Clip",
+      "imageUrl": "https://images.unsplash.com/photo-1581092787765-e3feb951d987?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxuZXdzJTIwYnJvYWRjYXN0fGVufDB8fHx8MTc2OTU4MTE0MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "news broadcast"
+    },
+    {
+      "id": "video-ad-10",
+      "description": "Social Media App",
+      "imageUrl": "https://images.unsplash.com/photo-1761864293845-90f7ff41739b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MXwxfHNlYXJjaHw4fHxzb2NpYWwlMjBtZWRpYXxlbnwwfHx8fDE3Njk0OTY2OTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "social media"
+    }
+  ]
 }
