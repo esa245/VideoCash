@@ -4,12 +4,13 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Video, Banknote, Gift, Headset } from 'lucide-react';
+import { Video, Banknote, Gift, Headset, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
 import VideosView from './VideosView';
 import WithdrawView from './WithdrawView';
 import SupportView from './SupportView';
+import ReferralsView from './ReferralsView';
 
 
 function WithdrawalProgress() {
@@ -99,9 +100,12 @@ export default function Dashboard() {
       <DailyBonusCard />
       
       <Tabs defaultValue="videos" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-3xl mx-auto bg-white/5 backdrop-blur-xl border-white/10 rounded-xl h-auto p-1.5 mb-8">
+        <TabsList className="grid w-full grid-cols-4 max-w-4xl mx-auto bg-white/5 backdrop-blur-xl border-white/10 rounded-xl h-auto p-1.5 mb-8">
           <TabsTrigger value="videos" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
             <Video className="h-4 w-4" /> Daily Videos ({10 - adsWatchedToday})
+          </TabsTrigger>
+          <TabsTrigger value="referrals" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
+            <Users className="h-4 w-4" /> Referrals
           </TabsTrigger>
           <TabsTrigger value="withdraw" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
             <Banknote className="h-4 w-4" /> Cash Out
@@ -112,6 +116,9 @@ export default function Dashboard() {
         </TabsList>
         <TabsContent value="videos">
             <VideosView />
+        </TabsContent>
+        <TabsContent value="referrals">
+            <ReferralsView />
         </TabsContent>
         <TabsContent value="withdraw">
             <WithdrawView />

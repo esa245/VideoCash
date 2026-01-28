@@ -12,9 +12,13 @@ export type User = {
   balance: number;
   adsWatchedToday: number;
   lastDailyClaim: string | null; // ISO date string yyyy-mm-dd
+  referralCode: string;
+  referredBy: string | null;
+  referralsCount: number;
 };
 
 export type AppSettings = {
   minWithdrawal: number;
   dailyBonus: number;
+  referralBonus: number;
 };

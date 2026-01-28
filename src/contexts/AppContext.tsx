@@ -4,7 +4,7 @@ import type { VideoAd, User, AppSettings } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useFirebase, useDoc, useCollection, useMemoFirebase, setDataNonBlocking, pushDataNonBlocking, removeDataNonBlocking, initiateEmailSignIn, initiateEmailSignUp, updateProfileNonBlocking, updateDataNonBlocking } from '@/firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, query, orderByChild, equalTo } from 'firebase/database';
 import { signOut } from 'firebase/auth';
 import { videoAds as initialVideoAds, appSettings as initialAppSettings } from '@/lib/data';
 
@@ -20,7 +20,7 @@ interface AppContextType {
   adminLogin: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
   setShowAuthForm: (show: boolean) => void;
-  register: (name: string, email: string, pass:string) => void;
+  register: (name: string, email: string, pass:string, referralCode: string | null) => void;
   playAd: (ad: VideoAd) => void;
   claimDailyBonus: () => void;
   updateCurrentUser: (user: Partial<User>) => void;
@@ -32,6 +32,10 @@ interface AppContextType {
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
+
+const generateReferralCode = () => {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
@@ -124,6 +128,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           balance: 0,
           adsWatchedToday: 0,
           lastDailyClaim: null,
+          referralCode: generateReferralCode(),
+          referredBy: null,
+          referralsCount: 0,
         };
         setDataNonBlocking(newUserRef, newUser);
         setCurrentUser(newUser); 
@@ -157,13 +164,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         });
   };
   
-  const register = async (name: string, email: string, pass: string) => {
-    if (!auth || !database) return;
+  const register = async (name: string, email: string, pass: string, referralCode: string | null) => {
+    if (!auth || !database || !usersRef) return;
     try {
         const credential = await initiateEmailSignUp(auth, email, pass);
         const user = credential.user;
         await updateProfileNonBlocking(user, { displayName: name });
         
+        const newReferralCode = generateReferralCode();
+
         const newUser: User = {
             id: user.uid,
             name,
@@ -171,9 +180,34 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             balance: 0,
             adsWatchedToday: 0,
             lastDailyClaim: null,
+            referralCode: newReferralCode,
+            referredBy: referralCode,
+            referralsCount: 0,
         };
         const newUserRef = ref(database, `users/${user.uid}`);
         await setDataNonBlocking(newUserRef, newUser);
+
+        if (referralCode) {
+            const usersQuery = query(usersRef, orderByChild('referralCode'), equalTo(referralCode));
+            onValue(usersQuery, (snapshot) => {
+                if(snapshot.exists()){
+                    const referrers = snapshot.val();
+                    const referrerId = Object.keys(referrers)[0];
+                    const referrerData = referrers[referrerId];
+                    
+                    const referrerRef = ref(database, `users/${referrerId}`);
+                    const updatedReferrerData = {
+                        balance: referrerData.balance + settings.referralBonus,
+                        referralsCount: (referrerData.referralsCount || 0) + 1,
+                    };
+                    updateDataNonBlocking(referrerRef, updatedReferrerData);
+                    toast({title: "Referral Success!", description: `You were referred by ${referrerData.name}`})
+                } else {
+                  toast({variant: 'destructive', title: 'Invalid Referral Code', description: 'The referral code you entered is not valid.'})
+                }
+            }, { onlyOnce: true });
+        }
+
         setShowAuthForm(false);
         toast({ title: 'Success', description: 'Registration successful!' });
     } catch (error: any) {

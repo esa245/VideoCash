@@ -71,6 +71,9 @@ export const users: User[] = [
     balance: 84.50,
     adsWatchedToday: 10,
     lastDailyClaim: '2024-07-28',
+    referralCode: 'REF777',
+    referredBy: null,
+    referralsCount: 5,
   },
   {
     id: 'user-2',
@@ -79,6 +82,9 @@ export const users: User[] = [
     balance: 12.20,
     adsWatchedToday: 5,
     lastDailyClaim: '2024-07-29',
+    referralCode: 'TANIA99',
+    referredBy: 'REF777',
+    referralsCount: 0,
   },
   {
     id: 'user-3',
@@ -87,10 +93,14 @@ export const users: User[] = [
     balance: 0,
     adsWatchedToday: 0,
     lastDailyClaim: null,
+    referralCode: 'TEST01',
+    referredBy: null,
+    referralsCount: 0,
   }
 ];
 
 export const appSettings: AppSettings = {
   minWithdrawal: 100,
   dailyBonus: 0.50,
+  referralBonus: 1.00,
 };

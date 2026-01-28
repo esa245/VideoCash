@@ -1,10 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
+import { useSearchParams } from 'next/navigation';
 
 export default function AuthForm() {
   const context = useApp();
@@ -12,7 +13,17 @@ export default function AuthForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+      const refCode = searchParams.get('ref');
+      if(refCode) {
+        setReferralCode(refCode);
+        setIsLogin(false); // Switch to register form if ref code is present
+      }
+  }, [searchParams]);
 
   if (!context) return null;
   const { login, register } = context;
@@ -26,7 +37,7 @@ export default function AuthForm() {
             toast({ variant: 'destructive', title: 'Error', description: 'Please fill all fields.' });
             return;
         }
-      register(name, email, password);
+      register(name, email, password, referralCode || null);
     }
   };
 
@@ -95,6 +106,13 @@ export default function AuthForm() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-4 h-14 bg-white/5 rounded-xl border border-white/10"
+              />
+              <Input
+                type="text"
+                placeholder="Referral Code (Optional)"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value)}
                 className="w-full p-4 h-14 bg-white/5 rounded-xl border border-white/10"
               />
               <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 py-4 h-14 rounded-xl font-bold text-lg mt-4">
