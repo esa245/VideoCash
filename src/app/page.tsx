@@ -1,6 +1,5 @@
 'use client';
-import { useContext } from 'react';
-import { AppContext } from '@/contexts/AppContext';
+import { useApp } from '@/contexts/AppContext';
 import UserHeader from '@/components/user/Header';
 import Hero from '@/components/user/Hero';
 import AuthForm from '@/components/auth/AuthForm';
@@ -8,7 +7,7 @@ import Dashboard from '@/components/user/Dashboard';
 import TimerOverlay from '@/components/user/TimerOverlay';
 
 export default function Home() {
-  const context = useContext(AppContext);
+  const context = useApp();
 
   if (!context) {
     return null; // Or a loading spinner

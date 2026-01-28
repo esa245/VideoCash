@@ -1,22 +1,23 @@
 'use client';
-import { useState, useContext, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppContext } from '@/contexts/AppContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useApp } from '@/contexts/AppContext';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('mdesaalli74@gmail.com');
   const [password, setPassword] = useState('mdesa1111');
-  const context = useContext(AppContext);
+  const { adminLogin } = useApp();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    if (context?.adminLogin(email, password)) {
+    const success = await adminLogin(email, password);
+    if (success) {
       router.push('/admin');
     } else {
       toast({

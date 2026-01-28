@@ -9,7 +9,7 @@ export type VideoAd = {
 
 export type User = {
   id: string;
-  name: string;
+  name?: string | null;
   email: string;
   balance: number;
   referrals: number;

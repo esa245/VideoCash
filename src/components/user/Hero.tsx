@@ -1,10 +1,9 @@
 'use client';
-import { useContext } from 'react';
-import { AppContext } from '@/contexts/AppContext';
+import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 
 export default function Hero() {
-  const context = useContext(AppContext);
+  const context = useApp();
   if (!context) return null;
 
   const { setShowAuthForm } = context;

@@ -1,13 +1,13 @@
 'use client';
-import { useState, useContext } from 'react';
-import { AppContext } from '@/contexts/AppContext';
+import { useState } from 'react';
+import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
 
 export default function AuthForm() {
-  const context = useContext(AppContext);
+  const context = useApp();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

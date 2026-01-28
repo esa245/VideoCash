@@ -1,11 +1,10 @@
 'use client';
-import { useContext } from 'react';
-import { AppContext } from '@/contexts/AppContext';
+import { useApp } from '@/contexts/AppContext';
 import { PlayCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function UserHeader() {
-  const context = useContext(AppContext);
+  const context = useApp();
   if (!context) return null;
   const { isAuthenticated, currentUser, logout } = context;
 
