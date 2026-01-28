@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import { useFirebase, useDoc, useCollection, useMemoFirebase, setDataNonBlocking, pushDataNonBlocking, removeDataNonBlocking, initiateEmailSignIn, initiateEmailSignUp, updateProfileNonBlocking, updateDataNonBlocking } from '@/firebase';
 import { ref, onValue } from 'firebase/database';
 import { signOut } from 'firebase/auth';
+import { videoAds as initialVideoAds, appSettings as initialAppSettings } from '@/lib/data';
 
 interface AppContextType {
   isAuthenticated: boolean;
@@ -41,7 +42,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [showAuthForm, setShowAuthForm] = useState(false);
   
   const [videoAds, setVideoAds] = useState<VideoAd[]>([]);
-  const [settings, setSettings] = useState<AppSettings>({ minWithdrawal: 100, dailyBonus: 0.50, referralBonus: 1.00 });
+  const [settings, setSettings] = useState<AppSettings>(initialAppSettings);
   const [users, setUsers] = useState<User[]>([]);
 
   // Realtime Database References
@@ -59,6 +60,29 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { data: settingsData, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
   const isUserLoading = isAuthLoading || (!!firebaseUser && isProfileLoading);
+
+  useEffect(() => {
+    if (videoAdsRef) {
+      onValue(videoAdsRef, (snapshot) => {
+        if (!snapshot.exists()) {
+          initialVideoAds.forEach(ad => {
+            pushDataNonBlocking(videoAdsRef, {
+              title: ad.title,
+              reward: ad.reward,
+              adUrl: ad.adUrl,
+            });
+          });
+        }
+      }, { onlyOnce: true });
+    }
+    if (settingsRef) {
+      onValue(settingsRef, (snapshot) => {
+        if (!snapshot.exists()) {
+          setDataNonBlocking(settingsRef, initialAppSettings);
+        }
+      }, { onlyOnce: true });
+    }
+  }, [videoAdsRef, settingsRef]);
 
   useEffect(() => {
     if (videoAdsData) {
