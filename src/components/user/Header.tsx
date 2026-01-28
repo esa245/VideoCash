@@ -1,22 +1,43 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { PlayCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function UserHeader() {
   const context = useApp();
+  const router = useRouter();
+  const [logoClickCount, setLogoClickCount] = useState(0);
+
+  useEffect(() => {
+    if (logoClickCount === 0) return;
+
+    const timer = setTimeout(() => {
+      setLogoClickCount(0);
+    }, 1500); // Reset clicks after 1.5 seconds
+
+    if (logoClickCount === 3) {
+      router.push('/admin/login');
+      setLogoClickCount(0);
+    }
+
+    return () => clearTimeout(timer);
+  }, [logoClickCount, router]);
+
+  const handleLogoClick = () => {
+    setLogoClickCount((prev) => prev + 1);
+  };
+
   if (!context) return null;
   const { isAuthenticated, currentUser, logout } = context;
 
   return (
     <nav className="bg-background/80 backdrop-blur-lg sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10">
-      <Link href="/admin">
-        <div className="flex items-center gap-2 cursor-pointer">
-          <PlayCircle className="text-blue-500 h-8 w-8" />
-          <h1 className="text-2xl font-bold tracking-wider">VIDEO<span className="text-blue-500">CASH</span></h1>
-        </div>
-      </Link>
+      <div onClick={handleLogoClick} className="flex items-center gap-2 cursor-pointer">
+        <PlayCircle className="text-blue-500 h-8 w-8" />
+        <h1 className="text-2xl font-bold tracking-wider">VIDEO<span className="text-blue-500">CASH</span></h1>
+      </div>
       {isAuthenticated && currentUser && (
         <div className="flex items-center gap-4">
           <div className="text-right">
