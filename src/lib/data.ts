@@ -69,8 +69,6 @@ export const users: User[] = [
     name: 'Ariful Islam',
     email: 'ariful77@gmail.com',
     balance: 84.50,
-    referrals: 12,
-    referralEarnings: 12.00,
     adsWatchedToday: 10,
     lastDailyClaim: '2024-07-28',
   },
@@ -79,8 +77,6 @@ export const users: User[] = [
     name: 'Tania Pro',
     email: 'tania_pro@yahoo.com',
     balance: 12.20,
-    referrals: 2,
-    referralEarnings: 2.00,
     adsWatchedToday: 5,
     lastDailyClaim: '2024-07-29',
   },
@@ -89,8 +85,6 @@ export const users: User[] = [
     name: 'Test User',
     email: 'test@test.com',
     balance: 0,
-    referrals: 0,
-    referralEarnings: 0,
     adsWatchedToday: 0,
     lastDailyClaim: null,
   }
@@ -99,5 +93,4 @@ export const users: User[] = [
 export const appSettings: AppSettings = {
   minWithdrawal: 100,
   dailyBonus: 0.50,
-  referralBonus: 1.00,
 };

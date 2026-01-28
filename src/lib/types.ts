@@ -10,16 +10,11 @@ export type User = {
   name: string;
   email: string;
   balance: number;
-  referrals: number;
-  referralEarnings: number;
   adsWatchedToday: number;
   lastDailyClaim: string | null; // ISO date string yyyy-mm-dd
-  referralCode: string;
-  referredBy: string | null;
 };
 
 export type AppSettings = {
   minWithdrawal: number;
   dailyBonus: number;
-  referralBonus: number;
 };

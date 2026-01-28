@@ -50,16 +50,6 @@ export default function GlobalSettings() {
                         onChange={handleChange}
                     />
                 </div>
-                 <div className="space-y-2">
-                    <label htmlFor="referralBonus" className="text-sm text-gray-400">Referral Bonus ($)</label>
-                    <Input 
-                        id="referralBonus"
-                        name="referralBonus"
-                        type="number"
-                        value={localSettings.referralBonus}
-                        onChange={handleChange}
-                    />
-                </div>
             </div>
             <Button onClick={handleUpdate} className="bg-green-600 hover:bg-green-700 px-10 py-3 h-auto rounded-xl font-bold">Update Settings</Button>
         </Card>

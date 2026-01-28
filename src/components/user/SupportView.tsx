@@ -3,7 +3,7 @@ import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { User, DollarSign, Send } from 'lucide-react';
+import { DollarSign, Send } from 'lucide-react';
 
 
 // A simple utility to get initials from a name
@@ -43,10 +43,6 @@ export default function SupportView() {
                         <div className="flex justify-between text-sm bg-white/5 backdrop-blur-xl border border-white/10 p-4 rounded-xl items-center">
                             <span className="flex items-center gap-3 text-gray-300"><DollarSign className="h-4 w-4 text-green-400" /> Current Balance:</span>
                             <span className="font-bold text-green-400 text-lg">${currentUser.balance.toFixed(2)}</span>
-                        </div>
-                         <div className="flex justify-between text-sm bg-white/5 backdrop-blur-xl border border-white/10 p-4 rounded-xl items-center">
-                            <span className="flex items-center gap-3 text-gray-300"><User className="h-4 w-4 text-purple-400" /> Total Referrals:</span>
-                            <span className="font-bold text-purple-400 text-lg">{currentUser.referrals}</span>
                         </div>
                     </div>
                    

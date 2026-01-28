@@ -1,6 +1,4 @@
 'use client';
-import { useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useApp } from '@/contexts/AppContext';
 import UserHeader from '@/components/user/Header';
 import Hero from '@/components/user/Hero';
@@ -10,16 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
   const context = useApp();
-  const searchParams = useSearchParams();
   
-  useEffect(() => {
-    if (searchParams.get('refCode')) {
-      if(context && !context.isAuthenticated) {
-        context.setShowAuthForm(true);
-      }
-    }
-  }, [searchParams, context]);
-
   if (!context) {
     return null; // Or a loading spinner
   }

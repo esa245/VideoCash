@@ -18,14 +18,6 @@
           "type": "number",
           "description": "Current balance of the user."
         },
-        "referrals": {
-          "type": "number",
-          "description": "The number of users that have been referred by the user."
-        },
-        "referralEarnings": {
-          "type": "number",
-          "description": "Total earnings from referrals."
-        },
         "adsWatchedToday": {
           "type": "number",
           "description": "Number of ads watched today."
@@ -36,27 +28,13 @@
             "null"
           ],
           "description": "The date of the last daily bonus claim in yyyy-mm-dd format."
-        },
-        "referralCode": {
-          "type": "string",
-          "description": "The user's unique 6-digit referral code."
-        },
-        "referredBy": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "The ID of the user who referred this user."
         }
       },
       "required": [
         "email",
         "name",
         "balance",
-        "referrals",
-        "referralEarnings",
-        "adsWatchedToday",
-        "referralCode"
+        "adsWatchedToday"
       ]
     },
     "VideoAd": {
@@ -95,16 +73,11 @@
         "dailyBonus": {
           "type": "number",
           "description": "Amount of the daily login bonus."
-        },
-        "referralBonus": {
-          "type": "number",
-          "description": "Bonus amount for a successful referral."
         }
       },
       "required": [
         "minimumWithdrawal",
-        "dailyBonus",
-        "referralBonus"
+        "dailyBonus"
       ]
     }
   },

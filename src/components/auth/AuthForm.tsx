@@ -1,6 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,18 +12,7 @@ export default function AuthForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [referralCode, setReferralCode] = useState('');
   const { toast } = useToast();
-
-  const searchParams = useSearchParams();
-  const refCodeFromUrl = searchParams.get('refCode');
-
-  useEffect(() => {
-    if (refCodeFromUrl) {
-      setReferralCode(refCodeFromUrl);
-      setIsLogin(false);
-    }
-  }, [refCodeFromUrl]);
 
   if (!context) return null;
   const { login, register } = context;
@@ -38,7 +26,7 @@ export default function AuthForm() {
             toast({ variant: 'destructive', title: 'Error', description: 'Please fill all fields.' });
             return;
         }
-      register(name, email, password, referralCode);
+      register(name, email, password);
     }
   };
 
@@ -107,13 +95,6 @@ export default function AuthForm() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-4 h-14 bg-white/5 rounded-xl border border-white/10"
-              />
-              <Input
-                type="text"
-                placeholder="Referral Code (Optional)"
-                value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value)}
                 className="w-full p-4 h-14 bg-white/5 rounded-xl border border-white/10"
               />
               <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 py-4 h-14 rounded-xl font-bold text-lg mt-4">

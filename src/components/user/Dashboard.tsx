@@ -4,11 +4,10 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Video, UserPlus, Banknote, Gift, Headset } from 'lucide-react';
+import { Video, Banknote, Gift, Headset } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
 import VideosView from './VideosView';
-import ReferralView from './ReferralView';
 import WithdrawView from './WithdrawView';
 import SupportView from './SupportView';
 
@@ -48,13 +47,11 @@ function StatsGrid() {
 
   const stats = [
     { label: 'Current USD', value: `$${currentUser.balance.toFixed(2)}`, color: 'border-blue-500', textColor: '' },
-    { label: 'Referral Bonus', value: `$${currentUser.referralEarnings.toFixed(2)}`, color: 'border-purple-500', textColor: 'text-purple-400' },
     { label: 'Videos Today', value: `${currentUser.adsWatchedToday}/10`, color: 'border-green-500', textColor: '' },
-    { label: 'Total Referrals', value: `${currentUser.referrals}`, color: 'border-yellow-500', textColor: '' },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div className="grid grid-cols-2 gap-4 mb-10">
       {stats.map(stat => (
         <Card key={stat.label} className={`bg-white/5 backdrop-blur-xl border-white/10 p-5 rounded-2xl border-l-4 ${stat.color}`}>
           <p className="text-[10px] text-gray-400 uppercase">{stat.label}</p>
@@ -102,12 +99,9 @@ export default function Dashboard() {
       <DailyBonusCard />
       
       <Tabs defaultValue="videos" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 max-w-3xl mx-auto bg-white/5 backdrop-blur-xl border-white/10 rounded-xl h-auto p-1.5 mb-8">
+        <TabsList className="grid w-full grid-cols-3 max-w-3xl mx-auto bg-white/5 backdrop-blur-xl border-white/10 rounded-xl h-auto p-1.5 mb-8">
           <TabsTrigger value="videos" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
             <Video className="h-4 w-4" /> Daily Videos ({10 - adsWatchedToday})
-          </TabsTrigger>
-          <TabsTrigger value="referral" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
-            <UserPlus className="h-4 w-4" /> Refer System
           </TabsTrigger>
           <TabsTrigger value="withdraw" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
             <Banknote className="h-4 w-4" /> Cash Out
@@ -118,9 +112,6 @@ export default function Dashboard() {
         </TabsList>
         <TabsContent value="videos">
             <VideosView />
-        </TabsContent>
-        <TabsContent value="referral">
-            <ReferralView />
         </TabsContent>
         <TabsContent value="withdraw">
             <WithdrawView />
