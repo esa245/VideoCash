@@ -8,6 +8,10 @@ import { ref, onValue } from 'firebase/database';
 import { signOut } from 'firebase/auth';
 import { videoAds as initialVideoAds, appSettings as initialAppSettings } from '@/lib/data';
 
+const generateReferralCode = (): string => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 interface AppContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -20,7 +24,7 @@ interface AppContextType {
   adminLogin: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
   setShowAuthForm: (show: boolean) => void;
-  register: (name: string, email: string, pass:string) => void;
+  register: (name: string, email: string, pass:string, referralCode?: string) => void;
   playAd: (ad: VideoAd) => void;
   claimDailyBonus: () => void;
   updateCurrentUser: (user: Partial<User>) => void;
@@ -139,6 +143,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           referralEarnings: 0,
           adsWatchedToday: 0,
           lastDailyClaim: null,
+          referralCode: generateReferralCode(),
+          referredBy: null,
         };
         setDataNonBlocking(newUserRef, newUser);
         setCurrentUser(newUser); 
@@ -172,12 +178,30 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         });
   };
   
-  const register = async (name: string, email: string, pass: string) => {
+  const register = async (name: string, email: string, pass: string, referralCode?: string) => {
     if (!auth || !database) return;
     try {
         const credential = await initiateEmailSignUp(auth, email, pass);
         const user = credential.user;
         await updateProfileNonBlocking(user, { displayName: name });
+        
+        let referredByUserId: string | null = null;
+        if (referralCode && users.length > 0) {
+            const referrer = users.find(u => u.referralCode === referralCode.trim());
+            if (referrer) {
+                referredByUserId = referrer.id;
+                const referrerRef = ref(database, `users/${referrer.id}`);
+                const referrerUpdate = {
+                    referrals: referrer.referrals + 1,
+                    referralEarnings: referrer.referralEarnings + settings.referralBonus,
+                };
+                updateDataNonBlocking(referrerRef, referrerUpdate);
+                toast({ title: 'Referral Applied!', description: `You were referred by ${referrer.name}.` });
+            } else {
+                toast({ variant: 'destructive', title: 'Invalid Code', description: 'The referral code you entered is not valid.' });
+            }
+        }
+
         const newUser: User = {
             id: user.uid,
             name,
@@ -187,9 +211,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             referralEarnings: 0,
             adsWatchedToday: 0,
             lastDailyClaim: null,
+            referralCode: generateReferralCode(),
+            referredBy: referredByUserId,
         };
         const newUserRef = ref(database, `users/${user.uid}`);
-        setDataNonBlocking(newUserRef, newUser);
+        await setDataNonBlocking(newUserRef, newUser);
         setShowAuthForm(false);
         toast({ title: 'Success', description: 'Registration successful!' });
     } catch (error: any) {

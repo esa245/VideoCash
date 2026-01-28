@@ -36,6 +36,17 @@
             "null"
           ],
           "description": "The date of the last daily bonus claim in yyyy-mm-dd format."
+        },
+        "referralCode": {
+          "type": "string",
+          "description": "The user's unique 6-digit referral code."
+        },
+        "referredBy": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The ID of the user who referred this user."
         }
       },
       "required": [
@@ -44,7 +55,8 @@
         "balance",
         "referrals",
         "referralEarnings",
-        "adsWatchedToday"
+        "adsWatchedToday",
+        "referralCode"
       ]
     },
     "VideoAd": {
