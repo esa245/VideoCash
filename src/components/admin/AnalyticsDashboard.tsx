@@ -7,12 +7,12 @@ export default function AnalyticsDashboard() {
 
     const totalUsers = users.length;
     const totalVideosWatched = users.reduce((acc, user) => acc + user.adsWatchedToday, 0); // Note: This is today's watch count. A real app would store total.
-    const pendingWithdrawals = users.filter(u => u.balance >= 100).reduce((acc, user) => acc + user.balance, 0);
+    const totalUserBalance = users.reduce((acc, user) => acc + user.balance, 0);
 
     const stats = [
         { label: 'Total Active Users', value: totalUsers.toLocaleString(), color: '', border: ''},
         { label: 'Total Videos Watched (Today)', value: totalVideosWatched.toLocaleString(), color: 'text-blue-500', border: ''},
-        { label: 'Pending Withdrawals', value: `$${pendingWithdrawals.toLocaleString()}`, color: 'text-green-500', border: 'border-b-4 border-green-600' },
+        { label: 'Total User Balance', value: `$${totalUserBalance.toFixed(2)}`, color: 'text-green-500', border: 'border-b-4 border-green-600' },
     ];
 
     return (
