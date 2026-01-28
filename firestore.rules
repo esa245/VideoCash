@@ -1,0 +1,132 @@
+/**
+ * This ruleset enforces a strict user-ownership security model for the VideoCash application.
+ *
+ * Core Philosophy:
+ * The security model is centered around the user. All data that is private or specific
+ * to a user (like their profile, balance, and watched video history) is stored in a way
+ * that can only be accessed by that authenticated user. Data that is global and public,
+ * such as the list of available video ads or application settings, is readable by anyone
+ * but cannot be modified by clients.
+ *
+ * Data Structure:
+ * All user-specific data is nested under the `/users/{userId}` collection path. This includes
+ * the user's main profile document and subcollections like `/user_video_ads`. This structural
+ * segregation is a key design choice that simplifies rules and enhances query performance
+ * and security, as client-side queries for private data are naturally scoped to the signed-in user.
+ * Public data, like `/video_ads` and `/admin_settings`, resides at the top level.
+ *
+ * Key Security Decisions:
+ * - User Isolation: A user can only ever read or write their own data. They cannot see or
+ *   modify the data of any other user.
+ * - No User Listing: The top-level `/users` collection cannot be listed, preventing any
+ *   actor from enumerating all users of the application.
+ * - Admin-Only Writes for Global Data: Collections like `/video_ads` and `/admin_settings`
+ *   are treated as read-only from a client's perspective. All write operations are disabled,
+ *   with the expectation that this data is managed through a trusted server environment or
+ *   the Firebase Console.
+ * - Relational Integrity: On creation, rules validate that internal ID fields (e.g., `userId`
+ *   on a document) match the user ID in the document path, ensuring data consistency.
+ *   These key relational fields are enforced as immutable on update.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    //-------------------------------------------------------------------------
+    // Helper Functions
+    //-------------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's UID matches the provided userId.
+     * This is the primary function for enforcing data ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an existing document. Used for update and delete
+     * operations to prevent acting on non-existent data.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    //-------------------------------------------------------------------------
+    // User Data Rules
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Controls access to a user's own profile document.
+     * @path /users/{userId}
+     * @allow (create) A new user signing up for the first time. auth.uid must match {userId}.
+     * @allow (get/update) The authenticated owner reading or updating their own profile.
+     * @deny (create) An authenticated user trying to create a profile for another userId.
+     * @deny (list/delete) Any user, including the owner, from listing all users or deleting their own profile.
+     * @principle Restricts access to a user's own data tree and allows self-creation of a profile.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Prevent enumerating all users
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if false; // Deleting a user profile is a destructive, restricted action.
+
+      /**
+       * @description Controls access to a user's record of watched video ads.
+       * @path /users/{userId}/user_video_ads/{userVideoAdId}
+       * @allow (create/get/list) The user creating new watch records or reading their history.
+       * @deny (get/list/create) Any user trying to access another user's watch history.
+       * @principle Enforces strict data ownership for user-specific subcollections.
+       */
+      match /user_video_ads/{userVideoAdId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    // Public & Global Data Rules
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Controls access to video ad documents.
+     * @path /video_ads/{videoAdId}
+     * @allow (get/list) Any user, authenticated or not, to read video ad information.
+     * @deny (create/update/delete) Any client attempting to modify the video ad list.
+     * @principle Provides public read access for application content while restricting writes to admin/server roles.
+     */
+    match /video_ads/{videoAdId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false; // Managed by admins, not clients.
+      allow update: if false; // Managed by admins, not clients.
+      allow delete: if false; // Managed by admins, not clients.
+    }
+
+    /**
+     * @description Controls access to the global application settings document.
+     * @path /admin_settings/global_settings
+     * @allow (get) Any user, authenticated or not, to read application settings.
+     * @deny (create/update/delete) Any client attempting to modify global settings.
+     * @principle Secures a singleton configuration document as publicly readable but non-modifiable.
+     */
+    match /admin_settings/global_settings {
+      allow get: if true;
+      allow list: if true; // Allows querying the collection, though it only has one doc.
+      allow create: if false; // Managed by admins, not clients.
+      allow update: if false; // Managed by admins, not clients.
+      allow delete: if false; // Managed by admins, not clients.
+    }
+  }
+}
