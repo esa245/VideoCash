@@ -5,7 +5,7 @@ import { videoAds as initialAds, appSettings as initialSettings } from '@/lib/da
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useFirebase, useDoc, useMemoFirebase, setDocumentNonBlocking, initiateEmailSignIn, initiateEmailSignUp, updateProfileNonBlocking } from '@/firebase';
-import { doc, collection, getDocs, where, query as firestoreQuery } from 'firebase/firestore';
+import { doc, collection, onSnapshot, query as firestoreQuery } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 
 type AdTimer = {
@@ -19,6 +19,7 @@ type AdTimer = {
 interface AppContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isUserLoading: boolean;
   currentUser: User | null;
   showAuthForm: boolean;
   videoAds: VideoAd[];
@@ -62,6 +63,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (!isUserLoading) {
         if (firebaseUser && userProfile) {
             setCurrentUser(userProfile);
+            if (firebaseUser.email === 'mdesaalli74@gmail.com') {
+                setIsAdmin(true);
+            } else {
+                setIsAdmin(false);
+            }
         } else {
             setCurrentUser(null);
             setIsAdmin(false);
@@ -85,68 +91,54 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (email: string, pass: string): void => {
     if (!auth) return;
-    initiateEmailSignIn(auth, email, pass);
-    setShowAuthForm(false);
+    initiateEmailSignIn(auth, email, pass)
+        .then(() => {
+            setShowAuthForm(false);
+        })
+        .catch((error: any) => {
+            toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid credentials or user does not exist.' });
+        });
   };
   
   const register = async (name: string, email: string, pass: string) => {
     if (!auth || !firestore) return;
     try {
-        await initiateEmailSignUp(auth, email, pass);
-        // After signUp, onAuthStateChanged will trigger.
-        // We need to wait for the user to be created to get the UID.
-        // A better approach is to handle profile creation in a useEffect listening to firebaseUser
-        
-        // For now, let's assume we get the user right away for simplicity.
-        // This part of the logic might need to be moved.
-        
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                updateProfileNonBlocking(user, { displayName: name });
-                const newUser: User = {
-                    id: user.uid,
-                    name,
-                    email,
-                    balance: 0,
-                    referrals: 0,
-                    referralEarnings: 0,
-                    adsWatchedToday: 0,
-                    lastDailyClaim: null,
-                };
-                const newUserRef = doc(firestore, 'users', user.uid);
-                setDocumentNonBlocking(newUserRef, newUser, {});
-                setShowAuthForm(false);
-                toast({ title: 'Success', description: 'Registration successful!' });
-            }
-        });
-        
-
+        const credential = await initiateEmailSignUp(auth, email, pass);
+        const user = credential.user;
+        await updateProfileNonBlocking(user, { displayName: name });
+        const newUser: User = {
+            id: user.uid,
+            name,
+            email,
+            balance: 0,
+            referrals: 0,
+            referralEarnings: 0,
+            adsWatchedToday: 0,
+            lastDailyClaim: null,
+        };
+        const newUserRef = doc(firestore, 'users', user.uid);
+        setDocumentNonBlocking(newUserRef, newUser, {});
+        setShowAuthForm(false);
+        toast({ title: 'Success', description: 'Registration successful!' });
     } catch (error: any) {
         toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
     }
   };
 
   const adminLogin = async (email: string, pass: string): Promise<boolean> => {
-    if (email === 'mdesaalli74@gmail.com' && pass === 'mdesa1111') {
-        if (auth) {
-           try {
-                await initiateEmailSignIn(auth, email, pass);
-                setIsAdmin(true);
-                return true;
-           } catch(e) {
-                return false;
-           }
-        }
+    if (!auth) return false;
+    try {
+        await initiateEmailSignIn(auth, email, pass);
+        return true;
+    } catch(e) {
+        return false;
     }
-    return false;
   };
 
   const logout = () => {
     if (auth) {
         signOut(auth);
     }
-    setCurrentUser(null);
-    setIsAdmin(false);
   };
 
   const playAd = (ad: VideoAd) => {
@@ -164,7 +156,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const addReward = (reward: number) => {
+  const addReward = useCallback((reward: number) => {
     if (!currentUser) return;
     const updatedUser = {
       balance: currentUser.balance + reward,
@@ -172,7 +164,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
     updateCurrentUser(updatedUser);
     toast({ title: 'Reward!', description: `Successfully credited: $${reward.toFixed(2)}` });
-  };
+  }, [currentUser, updateCurrentUser, toast]);
   
   const claimDailyBonus = () => {
     if (!currentUser) return;
@@ -200,23 +192,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setAdTimer(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
     }, 1000);
     return () => clearInterval(interval);
-  }, [adTimer.active, adTimer.timeLeft]);
+  }, [adTimer, addReward]);
 
   useEffect(() => {
     if(firestore) {
         const usersCollection = collection(firestore, 'users');
         const q = firestoreQuery(usersCollection);
-        getDocs(q).then(snapshot => {
+        const unsubscribe = onSnapshot(q, (snapshot) => {
             const userList = snapshot.docs.map(d => d.data() as User);
             setUsers(userList);
         });
+        return () => unsubscribe();
     }
   },[firestore]);
 
 
-  const value = {
+  const value: AppContextType = {
     isAuthenticated: !!firebaseUser && !!currentUser,
     isAdmin,
+    isUserLoading,
     currentUser,
     showAuthForm,
     videoAds,

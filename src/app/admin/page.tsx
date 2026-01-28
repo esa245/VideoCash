@@ -39,17 +39,17 @@ const navItems = [
 ];
 
 export default function AdminPage() {
-    const { isAdmin, logout } = useApp();
+    const { isAdmin, logout, isUserLoading } = useApp();
     const router = useRouter();
     const [activeSection, setActiveSection] = useState<Section>('stats');
 
     useEffect(() => {
-        if (!isAdmin) {
+        if (!isUserLoading && !isAdmin) {
             router.replace('/admin/login');
         }
-    }, [isAdmin, router]);
+    }, [isAdmin, isUserLoading, router]);
 
-    if (!isAdmin) {
+    if (isUserLoading || !isAdmin) {
         return <div className="flex items-center justify-center h-screen">Loading...</div>;
     }
 
