@@ -49,6 +49,7 @@ export default function SupportView() {
                     <div className="text-center pt-4">
                          <h3 className="text-xl font-bold mb-2">Need Help?</h3>
                         <p className="text-gray-400 mb-6">যেকোনো প্রয়োজনে আমাদের সাথে টেলিগ্রামে যোগাযোগ করুন।</p>
+                        <p className="text-gray-400 mb-4">আপনার কোনো লিংক বা এড জাবতিয় এড হিসেবে দিতে পারেন</p>
                         <Button 
                             onClick={() => window.open(telegramLink, '_blank')} 
                             className="w-full max-w-sm mx-auto bg-sky-500 hover:bg-sky-600 py-4 h-auto rounded-xl font-bold text-lg"
