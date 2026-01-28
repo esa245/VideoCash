@@ -4,12 +4,13 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Video, UserPlus, Banknote, Gift } from 'lucide-react';
+import { Video, UserPlus, Banknote, Gift, Headset } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
 import VideosView from './VideosView';
 import ReferralView from './ReferralView';
 import WithdrawView from './WithdrawView';
+import SupportView from './SupportView';
 
 
 function WithdrawalProgress() {
@@ -91,7 +92,8 @@ function DailyBonusCard() {
 }
 
 export default function Dashboard() {
-  const { videoAds } = useApp();
+  const { videoAds, currentUser } = useApp();
+  const adsWatchedToday = currentUser?.adsWatchedToday ?? 0;
   
   return (
     <div className="container mx-auto px-0 md:px-6 py-8">
@@ -100,15 +102,18 @@ export default function Dashboard() {
       <DailyBonusCard />
       
       <Tabs defaultValue="videos" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto bg-white/5 backdrop-blur-xl border-white/10 rounded-xl h-auto p-1.5 mb-8">
+        <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto bg-white/5 backdrop-blur-xl border-white/10 rounded-xl h-auto p-1.5 mb-8">
           <TabsTrigger value="videos" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
-            <Video className="h-4 w-4" /> Daily Videos ({10 - (useApp().currentUser?.adsWatchedToday || 0)})
+            <Video className="h-4 w-4" /> Daily Videos ({10 - adsWatchedToday})
           </TabsTrigger>
           <TabsTrigger value="referral" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
             <UserPlus className="h-4 w-4" /> Refer System
           </TabsTrigger>
           <TabsTrigger value="withdraw" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
             <Banknote className="h-4 w-4" /> Cash Out
+          </TabsTrigger>
+          <TabsTrigger value="support" className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white rounded-lg py-3">
+            <Headset className="h-4 w-4" /> Support
           </TabsTrigger>
         </TabsList>
         <TabsContent value="videos">
@@ -119,6 +124,9 @@ export default function Dashboard() {
         </TabsContent>
         <TabsContent value="withdraw">
             <WithdrawView />
+        </TabsContent>
+        <TabsContent value="support">
+            <SupportView />
         </TabsContent>
       </Tabs>
     </div>
