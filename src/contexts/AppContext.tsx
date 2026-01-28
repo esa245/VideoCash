@@ -57,23 +57,48 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     () => (firestore && firebaseUser ? doc(firestore, 'users', firebaseUser.uid) : null),
     [firestore, firebaseUser]
   );
-  const { data: userProfile } = useDoc<User>(userDocRef);
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<User>(userDocRef);
 
   useEffect(() => {
-    if (!isUserLoading) {
-        if (firebaseUser && userProfile) {
-            setCurrentUser(userProfile);
-            if (firebaseUser.email === 'mdesaalli74@gmail.com') {
-                setIsAdmin(true);
-            } else {
-                setIsAdmin(false);
-            }
-        } else {
-            setCurrentUser(null);
-            setIsAdmin(false);
-        }
+    // Wait for auth and profile loading to finish
+    if (isUserLoading || (firebaseUser && isProfileLoading)) {
+      return;
     }
-  }, [firebaseUser, userProfile, isUserLoading]);
+
+    if (firebaseUser && firestore) {
+      // User is authenticated
+      if (userProfile) {
+        // Profile exists, update state
+        setCurrentUser(userProfile);
+      } else {
+        // Profile doesn't exist, create it for the logged-in user
+        const newUserDocRef = doc(firestore, 'users', firebaseUser.uid);
+        const newUser: User = {
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'New User',
+          email: firebaseUser.email!,
+          balance: 0,
+          referrals: 0,
+          referralEarnings: 0,
+          adsWatchedToday: 0,
+          lastDailyClaim: null,
+        };
+        setDocumentNonBlocking(newUserDocRef, newUser, {});
+        setCurrentUser(newUser); // Optimistically update state
+      }
+
+      // Check for admin
+      if (firebaseUser.email === 'mdesaalli74@gmail.com') {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    } else {
+      // User is not authenticated
+      setCurrentUser(null);
+      setIsAdmin(false);
+    }
+  }, [firebaseUser, userProfile, isUserLoading, isProfileLoading, firestore]);
 
   const [adTimer, setAdTimer] = useState<AdTimer>({
     active: false,
@@ -109,7 +134,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const newUser: User = {
             id: user.uid,
             name,
-            email,
+            email: user.email!,
             balance: 0,
             referrals: 0,
             referralEarnings: 0,
@@ -210,7 +235,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const value: AppContextType = {
     isAuthenticated: !!firebaseUser && !!currentUser,
     isAdmin,
-    isUserLoading,
+    isUserLoading: isUserLoading || (!!firebaseUser && isProfileLoading),
     currentUser,
     showAuthForm,
     videoAds,
