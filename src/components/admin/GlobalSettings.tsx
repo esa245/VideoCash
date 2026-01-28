@@ -1,15 +1,28 @@
 'use client';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import type { AppSettings } from '@/lib/types';
 
 export default function GlobalSettings() {
-    const { settings, setSettings } = useApp();
+    const { settings: globalSettings, updateSettings } = useApp();
+    const [localSettings, setLocalSettings] = useState<AppSettings>(globalSettings);
     const { toast } = useToast();
 
+    useEffect(() => {
+        setLocalSettings(globalSettings);
+    }, [globalSettings]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setLocalSettings(s => ({ ...s, [name]: parseFloat(value) || 0 }));
+    };
+
     const handleUpdate = () => {
+        updateSettings(localSettings);
         toast({ title: 'Success', description: 'System settings updated.' });
     };
 
@@ -18,27 +31,33 @@ export default function GlobalSettings() {
             <h2 className="text-2xl font-bold">System Configuration</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <label className="text-sm text-gray-400">Minimum Withdrawal Limit ($)</label>
+                    <label htmlFor="minWithdrawal" className="text-sm text-gray-400">Minimum Withdrawal Limit ($)</label>
                     <Input 
+                        id="minWithdrawal"
+                        name="minWithdrawal"
                         type="number" 
-                        value={settings.minWithdrawal}
-                        onChange={(e) => setSettings(s => ({...s, minWithdrawal: parseFloat(e.target.value)}))}
+                        value={localSettings.minWithdrawal}
+                        onChange={handleChange}
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm text-gray-400">Daily Login Bonus ($)</label>
+                    <label htmlFor="dailyBonus" className="text-sm text-gray-400">Daily Login Bonus ($)</label>
                     <Input 
+                        id="dailyBonus"
+                        name="dailyBonus"
                         type="number"
-                        value={settings.dailyBonus}
-                        onChange={(e) => setSettings(s => ({...s, dailyBonus: parseFloat(e.target.value)}))}
+                        value={localSettings.dailyBonus}
+                        onChange={handleChange}
                     />
                 </div>
                  <div className="space-y-2">
-                    <label className="text-sm text-gray-400">Referral Bonus ($)</label>
+                    <label htmlFor="referralBonus" className="text-sm text-gray-400">Referral Bonus ($)</label>
                     <Input 
+                        id="referralBonus"
+                        name="referralBonus"
                         type="number"
-                        value={settings.referralBonus}
-                        onChange={(e) => setSettings(s => ({...s, referralBonus: parseFloat(e.target.value)}))}
+                        value={localSettings.referralBonus}
+                        onChange={handleChange}
                     />
                 </div>
             </div>

@@ -1,10 +1,9 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import type { VideoAd, User, AppSettings } from '@/lib/types';
-import { videoAds as initialAds, appSettings as initialSettings } from '@/lib/data';
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { useFirebase, useDoc, useMemoFirebase, setDocumentNonBlocking, initiateEmailSignIn, initiateEmailSignUp, updateProfileNonBlocking } from '@/firebase';
+import { useFirebase, useDoc, useCollection, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, initiateEmailSignIn, initiateEmailSignUp, updateProfileNonBlocking } from '@/firebase';
 import { doc, collection, onSnapshot, query as firestoreQuery } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 
@@ -24,45 +23,64 @@ interface AppContextType {
   playAd: (ad: VideoAd) => void;
   claimDailyBonus: () => void;
   updateCurrentUser: (user: Partial<User>) => void;
-  setVideoAds: React.Dispatch<React.SetStateAction<VideoAd[]>>;
-  setSettings: React.Dispatch<React.SetStateAction<AppSettings>>;
   users: User[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  addVideoAd: (ad: Omit<VideoAd, 'id'>) => void;
+  deleteVideoAd: (adId: string) => void;
+  updateSettings: (settings: AppSettings) => void;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
-  const { auth, firestore, user: firebaseUser, isUserLoading } = useFirebase();
+  const { auth, firestore, user: firebaseUser, isUserLoading: isAuthLoading } = useFirebase();
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAuthForm, setShowAuthForm] = useState(false);
   
-  const [videoAds, setVideoAds] = useState<VideoAd[]>(initialAds);
-  const [settings, setSettings] = useState<AppSettings>(initialSettings);
+  const [videoAds, setVideoAds] = useState<VideoAd[]>([]);
+  const [settings, setSettings] = useState<AppSettings>({ minWithdrawal: 100, dailyBonus: 0.50, referralBonus: 1.00 });
   const [users, setUsers] = useState<User[]>([]);
 
+  // Firestore References
   const userDocRef = useMemoFirebase(
     () => (firestore && firebaseUser ? doc(firestore, 'users', firebaseUser.uid) : null),
     [firestore, firebaseUser]
   );
+  const videoAdsCollectionRef = useMemoFirebase(() => (firestore ? collection(firestore, 'video_ads') : null), [firestore]);
+  const settingsDocRef = useMemoFirebase(() => (firestore ? doc(firestore, 'admin_settings', 'global_settings') : null), [firestore]);
+
+  // Firestore Data Hooks
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<User>(userDocRef);
+  const { data: videoAdsData, isLoading: areAdsLoading } = useCollection<VideoAd>(videoAdsCollectionRef);
+  const { data: settingsData, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsDocRef);
+  
+  const isUserLoading = isAuthLoading || (!!firebaseUser && isProfileLoading);
 
   useEffect(() => {
-    // Wait for auth and profile loading to finish
-    if (isUserLoading || (firebaseUser && isProfileLoading)) {
+    if (videoAdsData) {
+      setVideoAds(videoAdsData);
+    }
+  }, [videoAdsData]);
+
+  useEffect(() => {
+    if (settingsData) {
+      setSettings(settingsData);
+    }
+  }, [settingsData]);
+
+
+  useEffect(() => {
+    if (isUserLoading) {
       return;
     }
 
     if (firebaseUser && firestore) {
-      // User is authenticated
       if (userProfile) {
-        // Profile exists, update state
         setCurrentUser(userProfile);
       } else {
-        // Profile doesn't exist, create it for the logged-in user
         const newUserDocRef = doc(firestore, 'users', firebaseUser.uid);
         const newUser: User = {
           id: firebaseUser.uid,
@@ -75,21 +93,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           lastDailyClaim: null,
         };
         setDocumentNonBlocking(newUserDocRef, newUser, {});
-        setCurrentUser(newUser); // Optimistically update state
+        setCurrentUser(newUser); 
       }
 
-      // Check for admin
       if (firebaseUser.email === 'mdesaalli74@gmail.com') {
         setIsAdmin(true);
       } else {
         setIsAdmin(false);
       }
     } else {
-      // User is not authenticated
       setCurrentUser(null);
       setIsAdmin(false);
     }
-  }, [firebaseUser, userProfile, isUserLoading, isProfileLoading, firestore]);
+  }, [firebaseUser, userProfile, isUserLoading, firestore]);
 
   const updateCurrentUser = useCallback((userData: Partial<User>) => {
     if (userDocRef) {
@@ -196,11 +212,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   },[firestore]);
 
+  const addVideoAd = useCallback((ad: Omit<VideoAd, 'id'>) => {
+    if (!videoAdsCollectionRef) return;
+    addDocumentNonBlocking(videoAdsCollectionRef, ad);
+  }, [videoAdsCollectionRef]);
+
+  const deleteVideoAd = useCallback((adId: string) => {
+      if (!firestore) return;
+      const adDocRef = doc(firestore, 'video_ads', adId);
+      deleteDocumentNonBlocking(adDocRef);
+  }, [firestore]);
+
+  const updateSettings = useCallback((newSettings: AppSettings) => {
+      if (!settingsDocRef) return;
+      setDocumentNonBlocking(settingsDocRef, newSettings);
+  }, [settingsDocRef]);
+
 
   const value: AppContextType = {
     isAuthenticated: !!firebaseUser && !!currentUser,
     isAdmin,
-    isUserLoading: isUserLoading || (!!firebaseUser && isProfileLoading),
+    isUserLoading: isUserLoading || areAdsLoading || areSettingsLoading,
     currentUser,
     showAuthForm,
     videoAds,
@@ -213,10 +245,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     playAd,
     claimDailyBonus,
     updateCurrentUser,
-    setVideoAds,
-    setSettings,
     users,
-    setUsers
+    setUsers,
+    addVideoAd,
+    deleteVideoAd,
+    updateSettings,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

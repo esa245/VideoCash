@@ -9,20 +9,19 @@ import { useToast } from '@/hooks/use-toast';
 import type { VideoAd } from '@/lib/types';
 
 export default function ManageAds() {
-    const { videoAds, setVideoAds } = useApp();
+    const { videoAds, addVideoAd, deleteVideoAd } = useApp();
     const { toast } = useToast();
     const [newAd, setNewAd] = useState({ title: '', reward: '', adUrl: '' });
 
     const handleSaveAd = () => {
         const { title, reward, adUrl } = newAd;
         if (title && reward && adUrl) {
-            const ad: VideoAd = {
-                id: `ad-${Date.now()}`,
+            const ad: Omit<VideoAd, 'id'> = {
                 title,
                 reward: parseFloat(reward),
                 adUrl: adUrl,
             };
-            setVideoAds(prevAds => [ad, ...prevAds]);
+            addVideoAd(ad);
             setNewAd({ title: '', reward: '', adUrl: '' });
             toast({ title: 'Success', description: 'New ad has been published.' });
         } else {
@@ -32,7 +31,7 @@ export default function ManageAds() {
 
     const handleDeleteAd = (id: string) => {
         if (confirm("Are you sure? This will remove the ad for all users.")) {
-            setVideoAds(prevAds => prevAds.filter(ad => ad.id !== id));
+            deleteVideoAd(id);
             toast({ title: 'Ad Removed', description: 'The selected ad has been deleted.' });
         }
     };

@@ -1,21 +1,16 @@
 {
   "entities": {
     "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
       "description": "Represents a user of the VideoCash application.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user."
-        },
         "email": {
           "type": "string",
           "description": "Email address of the user.",
           "format": "email"
         },
-        "fullName": {
+        "name": {
           "type": "string",
           "description": "Full name of the user."
         },
@@ -23,37 +18,40 @@
           "type": "number",
           "description": "Current balance of the user."
         },
-        "referralId": {
-          "type": "string",
-          "description": "Unique referral code for the user."
-        },
-        "totalReferrals": {
+        "referrals": {
           "type": "number",
-          "description": "The number of users that have been referred by the user"
+          "description": "The number of users that have been referred by the user."
         },
-        "referredBy": {
-          "type": "string",
-          "description": "ID of the user who referred this user. Null if the user was not referred."
+        "referralEarnings": {
+          "type": "number",
+          "description": "Total earnings from referrals."
+        },
+        "adsWatchedToday": {
+          "type": "number",
+          "description": "Number of ads watched today."
+        },
+        "lastDailyClaim": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The date of the last daily bonus claim in yyyy-mm-dd format."
         }
       },
       "required": [
-        "id",
         "email",
-        "fullName",
+        "name",
         "balance",
-        "referralId"
+        "referrals",
+        "referralEarnings",
+        "adsWatchedToday"
       ]
     },
     "VideoAd": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "VideoAd",
       "type": "object",
       "description": "Represents a video advertisement.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the video ad."
-        },
         "title": {
           "type": "string",
           "description": "Title of the video ad."
@@ -62,64 +60,22 @@
           "type": "number",
           "description": "Reward amount for watching the video ad."
         },
-        "time": {
-          "type": "number",
-          "description": "Duration of the video ad in seconds."
+        "adUrl": {
+          "type": "string",
+          "description": "URL of the video ad."
         }
       },
       "required": [
-        "id",
         "title",
         "reward",
-        "time"
-      ]
-    },
-    "UserVideoAd": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "UserVideoAd",
-      "type": "object",
-      "description": "Represents the relationship between a user and a video ad, tracking whether a user has watched a specific ad.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for this record."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N UserVideoAd)"
-        },
-        "videoAdId": {
-          "type": "string",
-          "description": "Reference to VideoAd. (Relationship: VideoAd 1:N UserVideoAd)"
-        },
-        "watched": {
-          "type": "boolean",
-          "description": "Indicates whether the user has watched the video ad."
-        },
-        "watchDate": {
-          "type": "string",
-          "description": "The date and time that the video as was watched.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "videoAdId",
-        "watched",
-        "watchDate"
+        "adUrl"
       ]
     },
     "AdminSettings": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "AdminSettings",
       "type": "object",
       "description": "Represents global settings configured by the administrator.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the settings."
-        },
         "minimumWithdrawal": {
           "type": "number",
           "description": "Minimum amount required for withdrawal."
@@ -127,12 +83,16 @@
         "dailyBonus": {
           "type": "number",
           "description": "Amount of the daily login bonus."
+        },
+        "referralBonus": {
+          "type": "number",
+          "description": "Bonus amount for a successful referral."
         }
       },
       "required": [
-        "id",
         "minimumWithdrawal",
-        "dailyBonus"
+        "dailyBonus",
+        "referralBonus"
       ]
     }
   },
@@ -177,37 +137,17 @@
         }
       },
       {
-        "path": "/users/{userId}/user_video_ads/{userVideoAdId}",
-        "definition": {
-          "entityName": "UserVideoAd",
-          "schema": {
-            "$ref": "#/backend/entities/UserVideoAd"
-          },
-          "description": "Stores the relationship between a user and a video ad, tracking whether a user has watched a specific ad. Uses path-based ownership for private data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "userVideoAdId",
-              "description": "The unique identifier for the user video ad."
-            }
-          ]
-        }
-      },
-      {
         "path": "/admin_settings/global_settings",
         "definition": {
           "entityName": "AdminSettings",
           "schema": {
             "$ref": "#/backend/entities/AdminSettings"
           },
-          "description": "Stores global settings configured by the administrator.  There is only one document in this collection.",
+          "description": "Stores global settings configured by the administrator. There is only one document in this collection.",
           "params": []
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the VideoCash application's features, focusing on user accounts, video ads, and admin settings, while adhering to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are Not Filters).\n\n*   **Authorization Independence:**\n    *   User-owned data (UserVideoAds) are stored under `/users/{userId}` to directly associate data with the user. This eliminates the need for `get()` calls to verify ownership, which is critical for maintaining atomic operations and simplifies security rules.\n*   **Clarity of Intent:**\n    *   Each collection is structured to clearly represent its purpose, making security rules easier to understand and maintain. For instance, `admin_settings` holds global application configurations.\n*   **DBAC (Database-Based Access Control):**\n    *   There is no use of Custom Claims. The rules will reference the `request.auth.uid` and data stored in the database only.\n*   **QAPs (Rules are Not Filters):**\n    *   Structural Segregation is employed to ensure secure `list` operations. For instance, user-specific data is stored under `/users/{userId}`, ensuring that listing operations are always scoped to a specific user and do not require filtering based on user ID.\n\nData Segregation ensures that different types of data with varying access requirements are stored in separate collections. User data is separated from global settings, and user-specific video ad data is nested under the user's document. This approach simplifies security rules and improves query performance.\n\nAccess Modeling is standardized for consistency. User-owned data uses path-based ownership, while global settings are stored in a dedicated collection with a known ID.\n\n**Denormalization**: The structure will use denormalization. For example, if video ads required a list of approved user IDs to be watched, that list would be stored on the video ad itself, rather than trying to determine that in the rules from external collections.\n"
+    "reasoning": "The Firestore data structure is designed to support the VideoCash application's features, focusing on user accounts, video ads, and admin settings, while adhering to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are Not Filters).\n\n*   **Authorization Independence:**\n    *   User-owned data are stored under `/users/{userId}` to directly associate data with the user. This eliminates the need for `get()` calls to verify ownership, which is critical for maintaining atomic operations and simplifies security rules.\n*   **Clarity of Intent:**\n    *   Each collection is structured to clearly represent its purpose, making security rules easier to understand and maintain. For instance, `admin_settings` holds global application configurations.\n*   **DBAC (Database-Based Access Control):**\n    *   There is no use of Custom Claims. The rules will reference the `request.auth.uid` and data stored in the database only.\n*   **QAPs (Rules are Not Filters):**\n    *   Structural Segregation is employed to ensure secure `list` operations. For instance, user-specific data is stored under `/users/{userId}`, ensuring that listing operations are always scoped to a specific user and do not require filtering based on user ID.\n\nData Segregation ensures that different types of data with varying access requirements are stored in separate collections. User data is separated from global settings. This approach simplifies security rules and improves query performance.\n\nAccess Modeling is standardized for consistency. User-owned data uses path-based ownership, while global settings are stored in a dedicated collection with a known ID.\n\n**Denormalization**: The structure will use denormalization. For example, if video ads required a list of approved user IDs to be watched, that list would be stored on the video ad itself, rather than trying to determine that in the rules from external collections.\n"
   }
 }
