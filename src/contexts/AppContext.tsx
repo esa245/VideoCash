@@ -1,6 +1,6 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
-import type { VideoAd, User, AppSettings } from '@/lib/types';
+import type { VideoAd, User, AppSettings, PromotedLink } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useFirebase, useDoc, useCollection, useMemoFirebase, setDataNonBlocking, pushDataNonBlocking, removeDataNonBlocking, initiateEmailSignIn, initiateEmailSignUp, updateProfileNonBlocking, updateDataNonBlocking } from '@/firebase';
@@ -29,6 +29,9 @@ interface AppContextType {
   addVideoAd: (ad: Omit<VideoAd, 'id'>) => void;
   deleteVideoAd: (adId: string) => void;
   updateSettings: (settings: AppSettings) => void;
+  promotedLinks: PromotedLink[];
+  promoteLink: (url: string) => void;
+  registerClickOnPromotedLink: (link: PromotedLink) => void;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -44,6 +47,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [videoAds, setVideoAds] = useState<VideoAd[]>([]);
   const [settings, setSettings] = useState<AppSettings>(initialAppSettings);
   const [users, setUsers] = useState<User[]>([]);
+  const [promotedLinks, setPromotedLinks] = useState<PromotedLink[]>([]);
 
   // Realtime Database References
   const userRef = useMemoFirebase(
@@ -53,19 +57,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const videoAdsRef = useMemoFirebase(() => (database ? ref(database, 'video_ads') : null), [database]);
   const settingsRef = useMemoFirebase(() => (database ? ref(database, 'admin_settings') : null), [database]);
   const usersRef = useMemoFirebase(() => (database ? ref(database, 'users') : null), [database]);
+  const promotedLinksRef = useMemoFirebase(() => (database ? ref(database, 'promoted_links') : null), [database]);
+
 
   // Realtime Database Data Hooks
   const prevUserRef = useRef(userRef);
   const { data: userProfile, isLoading: isProfileLoadingFromDoc } = useDoc<User>(userRef);
   const { data: videoAdsData, isLoading: areAdsLoading } = useCollection<VideoAd>(videoAdsRef);
   const { data: settingsData, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsRef);
+  const { data: promotedLinksData, isLoading: arePromotedLinksLoading } = useCollection<PromotedLink>(promotedLinksRef);
   
-  // This logic prevents a race condition where an existing user's profile is briefly considered null on re-login,
-  // causing their data to be overwritten. It ensures we wait for the data to be fully loaded.
   const profileJustStartedLoading = prevUserRef.current !== userRef;
   const isProfileLoading = profileJustStartedLoading || (!!userRef && isProfileLoadingFromDoc);
 
-  const isUserLoading = isAuthLoading || (!!firebaseUser && isProfileLoading);
+  const isDataContextLoading = areAdsLoading || areSettingsLoading || arePromotedLinksLoading;
+  const isUserLoading = isAuthLoading || (!!firebaseUser && isProfileLoading) || isDataContextLoading;
 
   useEffect(() => {
     prevUserRef.current = userRef;
@@ -107,6 +113,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [settingsData]);
 
+  useEffect(() => {
+    if (promotedLinksData) {
+      const sortedLinks = promotedLinksData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setPromotedLinks(sortedLinks);
+    }
+  }, [promotedLinksData]);
 
   useEffect(() => {
     if (isUserLoading) {
@@ -267,11 +279,53 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setDataNonBlocking(settingsRef, newSettings);
   }, [settingsRef]);
 
+  const promoteLink = useCallback((url: string) => {
+    if (!currentUser || !database || !promotedLinksRef) return;
+    const cost = 1.00;
+    if (currentUser.balance < cost) {
+        toast({ variant: 'destructive', title: 'Insufficient Balance', description: `You need at least $${cost.toFixed(2)} to promote a link.` });
+        return;
+    }
+
+    const newLink: Omit<PromotedLink, 'id'> = {
+        url,
+        userId: currentUser.id,
+        userName: currentUser.name,
+        clicks: 0,
+        createdAt: new Date().toISOString(),
+    };
+
+    const userUpdate = {
+        balance: currentUser.balance - cost,
+    };
+
+    pushDataNonBlocking(promotedLinksRef, newLink)
+        .then(() => {
+            updateCurrentUser(userUpdate);
+            toast({ title: 'Link Promoted!', description: 'Your link is now live in the Promotions section.' });
+        })
+        .catch(() => {
+             toast({ variant: 'destructive', title: 'Promotion Failed', description: 'Could not promote your link. Please try again.' });
+        });
+
+  }, [currentUser, database, promotedLinksRef, toast, updateCurrentUser]);
+
+  const registerClickOnPromotedLink = useCallback((link: PromotedLink) => {
+    if (!database) return;
+    window.open(link.url, '_blank');
+    
+    const linkRef = ref(database, `promoted_links/${link.id}`);
+    const updatedData = {
+        clicks: link.clicks + 1,
+    };
+    updateDataNonBlocking(linkRef, updatedData);
+  }, [database]);
+
 
   const value: AppContextType = {
     isAuthenticated: !!firebaseUser && !!currentUser,
     isAdmin,
-    isUserLoading: isUserLoading || areAdsLoading || areSettingsLoading,
+    isUserLoading,
     currentUser,
     showAuthForm,
     videoAds,
@@ -289,6 +343,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     addVideoAd,
     deleteVideoAd,
     updateSettings,
+    promotedLinks,
+    promoteLink,
+    registerClickOnPromotedLink,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

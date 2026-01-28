@@ -13,6 +13,10 @@
     "admin_settings": {
       ".read": true,
       ".write": "root.child('users').child(auth.uid).child('email').val() === 'mdesaalli74@gmail.com'"
+    },
+    "promoted_links": {
+        ".read": "auth != null",
+        ".write": "auth != null"
     }
   }
 }

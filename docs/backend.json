@@ -94,6 +94,41 @@
         "dailyBonus",
         "referralBonus"
       ]
+    },
+    "PromotedLink": {
+      "title": "PromotedLink",
+      "type": "object",
+      "description": "Represents a link promoted by a user.",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "The URL of the link being promoted."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who promoted the link."
+        },
+        "userName": {
+          "type": "string",
+          "description": "The name of the user who promoted the link."
+        },
+        "clicks": {
+          "type": "number",
+          "description": "The number of clicks the link has received."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the link was promoted."
+        }
+      },
+      "required": [
+        "url",
+        "userId",
+        "userName",
+        "clicks",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -124,6 +159,14 @@
         "$ref": "#/backend/entities/AdminSettings"
       },
       "description": "Stores global admin settings."
+    },
+    "promoted_links": {
+      "$linkId": {
+        "schema": {
+          "$ref": "#/backend/entities/PromotedLink"
+        },
+        "description": "Stores user-promoted links."
+      }
     }
   }
 }
