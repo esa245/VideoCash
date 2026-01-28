@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import type { VideoAd, User, AppSettings } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -55,11 +55,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const usersRef = useMemoFirebase(() => (database ? ref(database, 'users') : null), [database]);
 
   // Realtime Database Data Hooks
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc<User>(userRef);
+  const prevUserRef = useRef(userRef);
+  const { data: userProfile, isLoading: isProfileLoadingFromDoc } = useDoc<User>(userRef);
   const { data: videoAdsData, isLoading: areAdsLoading } = useCollection<VideoAd>(videoAdsRef);
   const { data: settingsData, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
+  // This logic prevents a race condition where an existing user's profile is briefly considered null on re-login,
+  // causing their data to be overwritten. It ensures we wait for the data to be fully loaded.
+  const profileJustStartedLoading = prevUserRef.current !== userRef;
+  const isProfileLoading = profileJustStartedLoading || (!!userRef && isProfileLoadingFromDoc);
+
   const isUserLoading = isAuthLoading || (!!firebaseUser && isProfileLoading);
+
+  useEffect(() => {
+    prevUserRef.current = userRef;
+  }, [userRef]);
+
 
   useEffect(() => {
     if (videoAdsRef) {
