@@ -64,8 +64,8 @@ export default function AdminPage() {
     };
 
     const handleLogout = () => {
+        router.replace('/');
         logout();
-        router.push('/');
     }
 
     return (
