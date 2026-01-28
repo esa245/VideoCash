@@ -3,10 +3,7 @@ import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { User, DollarSign, Send, Zap } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { User, DollarSign, Send } from 'lucide-react';
 
 
 // A simple utility to get initials from a name
@@ -21,24 +18,11 @@ const getInitials = (name: string) => {
 
 
 export default function SupportView() {
-    const { currentUser, promoteLink } = useApp();
-    const [promoUrl, setPromoUrl] = useState('');
-    const { toast } = useToast();
+    const { currentUser } = useApp();
 
     if (!currentUser) return null;
 
     const telegramLink = "https://t.me/+BwVCGF5qYWY5NDM1";
-
-    const handlePromote = () => {
-        if (!promoUrl || !(promoUrl.startsWith('http://') || promoUrl.startsWith('https://'))) {
-            toast({ variant: 'destructive', title: 'Invalid URL', description: 'Please enter a valid URL starting with http:// or https://.' });
-            return;
-        }
-        if (promoteLink) {
-             promoteLink(promoUrl);
-             setPromoUrl('');
-        }
-    };
 
     return (
         <div className="flex flex-col items-center gap-8">
@@ -74,28 +58,6 @@ export default function SupportView() {
                             className="w-full max-w-sm mx-auto bg-sky-500 hover:bg-sky-600 py-4 h-auto rounded-xl font-bold text-lg"
                         >
                             <Send className="mr-2 h-5 w-5" /> Join Telegram Support
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="max-w-2xl w-full bg-white/5 backdrop-blur-xl border-white/10 p-8 rounded-3xl">
-                <CardHeader className="flex flex-col items-center p-0 pb-6 text-center">
-                    <Zap className="h-10 w-10 text-yellow-500 mb-4" />
-                    <CardTitle className="text-2xl font-bold">Promote Your Link</CardTitle>
-                    <CardDescription className="text-gray-400">Pay $1.00 from your balance to get your link featured.</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <div className="flex flex-col gap-4">
-                        <Input 
-                            type="url"
-                            placeholder="https://your-link.com"
-                            value={promoUrl}
-                            onChange={(e) => setPromoUrl(e.target.value)}
-                            className="w-full p-4 h-14 bg-white/5 rounded-xl border border-white/10"
-                        />
-                        <Button onClick={handlePromote} className="w-full bg-yellow-600 hover:bg-yellow-700 py-4 h-14 rounded-xl font-bold text-lg">
-                            Promote for $1.00
                         </Button>
                     </div>
                 </CardContent>

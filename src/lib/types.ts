@@ -23,12 +23,3 @@ export type AppSettings = {
   dailyBonus: number;
   referralBonus: number;
 };
-
-export type PromotedLink = {
-  id: string;
-  url: string;
-  userId: string;
-  userName: string;
-  clicks: number;
-  createdAt: string;
-};
