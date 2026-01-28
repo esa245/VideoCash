@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
-import { PieChart, Film, Users, Settings, LogOut } from 'lucide-react';
+import { PieChart, Film, Users, Settings, LogOut, ArrowLeft } from 'lucide-react';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import ManageAds from '@/components/admin/ManageAds';
 import UserManagement from '@/components/admin/UserManagement';
@@ -78,6 +78,9 @@ export default function AdminPage() {
                             <item.icon className={`${item.color} h-5 w-5`} /> {item.label}
                         </Button>
                     ))}
+                    <Button onClick={() => router.push('/')} variant="ghost" className="w-full justify-start gap-4 p-4 h-auto rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/10 transition text-base text-gray-300">
+                        <ArrowLeft className="h-5 w-5" /> Back to User Panel
+                    </Button>
                     <Button onClick={handleLogout} variant="ghost" className="w-full justify-start gap-4 p-4 h-auto rounded-2xl bg-red-500/10 backdrop-blur-xl border border-red-500/20 hover:bg-red-500/20 transition text-base text-red-400">
                         <LogOut className="h-5 w-5" /> Logout
                     </Button>
