@@ -2,6 +2,7 @@
 import { useApp } from '@/contexts/AppContext';
 import { PlayCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function UserHeader() {
   const context = useApp();
@@ -10,10 +11,12 @@ export default function UserHeader() {
 
   return (
     <nav className="bg-background/80 backdrop-blur-lg sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-white/10">
-      <div className="flex items-center gap-2">
-        <PlayCircle className="text-blue-500 h-8 w-8" />
-        <h1 className="text-2xl font-bold tracking-wider">VIDEO<span className="text-blue-500">CASH</span></h1>
-      </div>
+      <Link href="/admin">
+        <div className="flex items-center gap-2 cursor-pointer">
+          <PlayCircle className="text-blue-500 h-8 w-8" />
+          <h1 className="text-2xl font-bold tracking-wider">VIDEO<span className="text-blue-500">CASH</span></h1>
+        </div>
+      </Link>
       {isAuthenticated && currentUser && (
         <div className="flex items-center gap-4">
           <div className="text-right">
