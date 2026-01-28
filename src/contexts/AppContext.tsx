@@ -3,8 +3,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import type { VideoAd, User, AppSettings } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { useFirebase, useDoc, useCollection, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking, initiateEmailSignIn, initiateEmailSignUp, updateProfileNonBlocking } from '@/firebase';
-import { doc, collection, onSnapshot, query as firestoreQuery } from 'firebase/firestore';
+import { useFirebase, useDoc, useCollection, useMemoFirebase, setDataNonBlocking, pushDataNonBlocking, removeDataNonBlocking, initiateEmailSignIn, initiateEmailSignUp, updateProfileNonBlocking, updateDataNonBlocking } from '@/firebase';
+import { ref, onValue } from 'firebase/database';
 import { signOut } from 'firebase/auth';
 
 interface AppContextType {
@@ -34,7 +34,7 @@ export const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
-  const { auth, firestore, user: firebaseUser, isUserLoading: isAuthLoading } = useFirebase();
+  const { auth, database, user: firebaseUser, isUserLoading: isAuthLoading } = useFirebase();
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -44,18 +44,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<AppSettings>({ minWithdrawal: 100, dailyBonus: 0.50, referralBonus: 1.00 });
   const [users, setUsers] = useState<User[]>([]);
 
-  // Firestore References
-  const userDocRef = useMemoFirebase(
-    () => (firestore && firebaseUser ? doc(firestore, 'users', firebaseUser.uid) : null),
-    [firestore, firebaseUser]
+  // Realtime Database References
+  const userRef = useMemoFirebase(
+    () => (database && firebaseUser ? ref(database, `users/${firebaseUser.uid}`) : null),
+    [database, firebaseUser]
   );
-  const videoAdsCollectionRef = useMemoFirebase(() => (firestore ? collection(firestore, 'video_ads') : null), [firestore]);
-  const settingsDocRef = useMemoFirebase(() => (firestore ? doc(firestore, 'admin_settings', 'global_settings') : null), [firestore]);
+  const videoAdsRef = useMemoFirebase(() => (database ? ref(database, 'video_ads') : null), [database]);
+  const settingsRef = useMemoFirebase(() => (database ? ref(database, 'admin_settings') : null), [database]);
+  const usersRef = useMemoFirebase(() => (database ? ref(database, 'users') : null), [database]);
 
-  // Firestore Data Hooks
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc<User>(userDocRef);
-  const { data: videoAdsData, isLoading: areAdsLoading } = useCollection<VideoAd>(videoAdsCollectionRef);
-  const { data: settingsData, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsDocRef);
+  // Realtime Database Data Hooks
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<User>(userRef);
+  const { data: videoAdsData, isLoading: areAdsLoading } = useCollection<VideoAd>(videoAdsRef);
+  const { data: settingsData, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsRef);
   
   const isUserLoading = isAuthLoading || (!!firebaseUser && isProfileLoading);
 
@@ -77,11 +78,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    if (firebaseUser && firestore) {
+    if (firebaseUser && database) {
       if (userProfile) {
         setCurrentUser(userProfile);
       } else {
-        const newUserDocRef = doc(firestore, 'users', firebaseUser.uid);
+        const newUserRef = ref(database, `users/${firebaseUser.uid}`);
         const newUser: User = {
           id: firebaseUser.uid,
           name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'New User',
@@ -92,7 +93,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           adsWatchedToday: 0,
           lastDailyClaim: null,
         };
-        setDocumentNonBlocking(newUserDocRef, newUser, {});
+        setDataNonBlocking(newUserRef, newUser);
         setCurrentUser(newUser); 
       }
 
@@ -105,13 +106,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setCurrentUser(null);
       setIsAdmin(false);
     }
-  }, [firebaseUser, userProfile, isUserLoading, firestore]);
+  }, [firebaseUser, userProfile, isUserLoading, database]);
 
   const updateCurrentUser = useCallback((userData: Partial<User>) => {
-    if (userDocRef) {
-        setDocumentNonBlocking(userDocRef, userData, { merge: true });
+    if (userRef) {
+        updateDataNonBlocking(userRef, userData);
     }
-  }, [userDocRef]);
+  }, [userRef]);
 
   const login = (email: string, pass: string): void => {
     if (!auth) return;
@@ -125,7 +126,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const register = async (name: string, email: string, pass: string) => {
-    if (!auth || !firestore) return;
+    if (!auth || !database) return;
     try {
         const credential = await initiateEmailSignUp(auth, email, pass);
         const user = credential.user;
@@ -140,8 +141,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             adsWatchedToday: 0,
             lastDailyClaim: null,
         };
-        const newUserRef = doc(firestore, 'users', user.uid);
-        setDocumentNonBlocking(newUserRef, newUser, {});
+        const newUserRef = ref(database, `users/${user.uid}`);
+        setDataNonBlocking(newUserRef, newUser);
         setShowAuthForm(false);
         toast({ title: 'Success', description: 'Registration successful!' });
     } catch (error: any) {
@@ -201,32 +202,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   useEffect(() => {
-    if(firestore) {
-        const usersCollection = collection(firestore, 'users');
-        const q = firestoreQuery(usersCollection);
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const userList = snapshot.docs.map(d => d.data() as User);
-            setUsers(userList);
+    if(usersRef) {
+        const unsubscribe = onValue(usersRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const userList = Object.keys(data).map(key => ({ ...data[key], id: key }));
+                setUsers(userList);
+            } else {
+                setUsers([]);
+            }
         });
         return () => unsubscribe();
     }
-  },[firestore]);
+  },[usersRef]);
 
   const addVideoAd = useCallback((ad: Omit<VideoAd, 'id'>) => {
-    if (!videoAdsCollectionRef) return;
-    addDocumentNonBlocking(videoAdsCollectionRef, ad);
-  }, [videoAdsCollectionRef]);
+    if (!videoAdsRef) return;
+    pushDataNonBlocking(videoAdsRef, ad);
+  }, [videoAdsRef]);
 
   const deleteVideoAd = useCallback((adId: string) => {
-      if (!firestore) return;
-      const adDocRef = doc(firestore, 'video_ads', adId);
-      deleteDocumentNonBlocking(adDocRef);
-  }, [firestore]);
+      if (!database) return;
+      const adRef = ref(database, `video_ads/${adId}`);
+      removeDataNonBlocking(adRef);
+  }, [database]);
 
   const updateSettings = useCallback((newSettings: AppSettings) => {
-      if (!settingsDocRef) return;
-      setDocumentNonBlocking(settingsDocRef, newSettings);
-  }, [settingsDocRef]);
+      if (!settingsRef) return;
+      setDataNonBlocking(settingsRef, newSettings);
+  }, [settingsRef]);
 
 
   const value: AppContextType = {

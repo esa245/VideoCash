@@ -102,52 +102,28 @@
       "anonymous"
     ]
   },
-  "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles, including personal information and balances. Uses path-based ownership for private data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/video_ads/{videoAdId}",
-        "definition": {
-          "entityName": "VideoAd",
-          "schema": {
-            "$ref": "#/backend/entities/VideoAd"
-          },
-          "description": "Stores video advertisements available in the application.",
-          "params": [
-            {
-              "name": "videoAdId",
-              "description": "The unique identifier for the video ad."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/admin_settings/global_settings",
-        "definition": {
-          "entityName": "AdminSettings",
-          "schema": {
-            "$ref": "#/backend/entities/AdminSettings"
-          },
-          "description": "Stores global settings configured by the administrator. There is only one document in this collection.",
-          "params": []
-        }
+  "realtimeDatabase": {
+    "users": {
+      "$userId": {
+        "schema": {
+          "$ref": "#/backend/entities/User"
+        },
+        "description": "Stores user profiles."
       }
-    ],
-    "reasoning": "The Firestore data structure is designed to support the VideoCash application's features, focusing on user accounts, video ads, and admin settings, while adhering to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are Not Filters).\n\n*   **Authorization Independence:**\n    *   User-owned data are stored under `/users/{userId}` to directly associate data with the user. This eliminates the need for `get()` calls to verify ownership, which is critical for maintaining atomic operations and simplifies security rules.\n*   **Clarity of Intent:**\n    *   Each collection is structured to clearly represent its purpose, making security rules easier to understand and maintain. For instance, `admin_settings` holds global application configurations.\n*   **DBAC (Database-Based Access Control):**\n    *   There is no use of Custom Claims. The rules will reference the `request.auth.uid` and data stored in the database only.\n*   **QAPs (Rules are Not Filters):**\n    *   Structural Segregation is employed to ensure secure `list` operations. For instance, user-specific data is stored under `/users/{userId}`, ensuring that listing operations are always scoped to a specific user and do not require filtering based on user ID.\n\nData Segregation ensures that different types of data with varying access requirements are stored in separate collections. User data is separated from global settings. This approach simplifies security rules and improves query performance.\n\nAccess Modeling is standardized for consistency. User-owned data uses path-based ownership, while global settings are stored in a dedicated collection with a known ID.\n\n**Denormalization**: The structure will use denormalization. For example, if video ads required a list of approved user IDs to be watched, that list would be stored on the video ad itself, rather than trying to determine that in the rules from external collections.\n"
+    },
+    "video_ads": {
+      "$videoAdId": {
+        "schema": {
+          "$ref": "#/backend/entities/VideoAd"
+        },
+        "description": "Stores video advertisements."
+      }
+    },
+    "admin_settings": {
+      "schema": {
+        "$ref": "#/backend/entities/AdminSettings"
+      },
+      "description": "Stores global admin settings."
+    }
   }
 }
