@@ -8,14 +8,6 @@ import { useFirebase, useDoc, useMemoFirebase, setDocumentNonBlocking, initiateE
 import { doc, collection, onSnapshot, query as firestoreQuery } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 
-type AdTimer = {
-  active: boolean;
-  timeLeft: number;
-  totalTime: number;
-  reward: number;
-  adId: string;
-};
-
 interface AppContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -24,7 +16,6 @@ interface AppContextType {
   showAuthForm: boolean;
   videoAds: VideoAd[];
   settings: AppSettings;
-  adTimer: AdTimer;
   login: (email: string, pass: string) => void;
   adminLogin: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
@@ -100,14 +91,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [firebaseUser, userProfile, isUserLoading, isProfileLoading, firestore]);
 
-  const [adTimer, setAdTimer] = useState<AdTimer>({
-    active: false,
-    timeLeft: 0,
-    totalTime: 0,
-    reward: 0,
-    adId: '',
-  });
-
   const updateCurrentUser = useCallback((userData: Partial<User>) => {
     if (userDocRef) {
         setDocumentNonBlocking(userDocRef, userData, { merge: true });
@@ -166,21 +149,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const playAd = (ad: VideoAd) => {
-    if (!currentUser) return;
-    if (currentUser.adsWatchedToday >= 10) {
-      toast({ variant: 'destructive', title: "Today's limit reached!", description: "You have already watched 10 videos today. Come back tomorrow." });
-      return;
-    }
-    setAdTimer({
-      active: true,
-      timeLeft: ad.time,
-      totalTime: ad.time,
-      reward: ad.reward,
-      adId: ad.id,
-    });
-  };
-
   const addReward = useCallback((reward: number) => {
     if (!currentUser) return;
     const updatedUser = {
@@ -190,7 +158,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     updateCurrentUser(updatedUser);
     toast({ title: 'Reward!', description: `Successfully credited: $${reward.toFixed(2)}` });
   }, [currentUser, updateCurrentUser, toast]);
-  
+
+  const playAd = (ad: VideoAd) => {
+    if (!currentUser) return;
+    if (currentUser.adsWatchedToday >= 10) {
+      toast({ variant: 'destructive', title: "Today's limit reached!", description: "You have already watched 10 videos today. Come back tomorrow." });
+      return;
+    }
+    window.open(ad.adUrl, '_blank');
+    addReward(ad.reward);
+  };
+
   const claimDailyBonus = () => {
     if (!currentUser) return;
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -205,19 +183,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     updateCurrentUser(updatedUser);
     toast({ title: 'Daily Bonus!', description: `$${settings.dailyBonus.toFixed(2)} has been credited to your account.` });
   }
-
-  useEffect(() => {
-    if (!adTimer.active) return;
-    if (adTimer.timeLeft <= 0) {
-      setAdTimer({ ...adTimer, active: false });
-      addReward(adTimer.reward);
-      return;
-    }
-    const interval = setInterval(() => {
-      setAdTimer(prev => ({ ...prev, timeLeft: prev.timeLeft - 1 }));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [adTimer, addReward]);
 
   useEffect(() => {
     if(firestore) {
@@ -240,7 +205,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     showAuthForm,
     videoAds,
     settings,
-    adTimer,
     login,
     adminLogin,
     logout,

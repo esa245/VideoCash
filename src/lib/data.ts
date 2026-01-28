@@ -1,18 +1,67 @@
 import type { VideoAd, User, AppSettings } from './types';
-import imageData from './placeholder-images.json';
 
-export const videoAds: VideoAd[] = imageData.placeholderImages.map((img, index) => {
-    const rewards = [0.80, 0.50, 0.25, 0.20, 0.20, 0.20, 0.30, 0.20, 0.15, 0.20];
-    const times = [30, 25, 20, 20, 15, 15, 30, 20, 15, 15];
-    return {
-        id: img.id,
-        title: img.description,
-        reward: rewards[index],
-        time: times[index],
-        image: img.imageUrl,
-        imageHint: img.imageHint,
-    };
-});
+export const videoAds: VideoAd[] = [
+    {
+        id: 'cpm-ad-1',
+        title: 'অফার (১): অ্যাপ ইনস্টল করে আয় করুন',
+        adUrl: 'https://www.effectivegatecpm.com/t8295gzkm?key=370687f852c8e8eb9099cd160f2a80ae',
+        reward: 0.35,
+    },
+    {
+        id: 'cpm-ad-2',
+        title: 'অফার (২): বিজ্ঞাপন দেখে আয় করুন',
+        adUrl: 'https://www.effectivegatecpm.com/xiedchkt?key=56bb4992d3fac02fe4ed2b9ac12a121d',
+        reward: 0.35,
+    },
+    {
+        id: 'cpm-ad-3',
+        title: 'অফার (৩): স্পেশাল বোনাস!',
+        adUrl: 'https://www.effectivegatecpm.com/t8295gzkm?key=370687f852c8e8eb9099cd160f2a80ae',
+        reward: 0.30,
+    },
+    {
+        id: 'cpm-ad-4',
+        title: 'অফার (৪): সীমিত সময়ের অফার',
+        adUrl: 'https://www.effectivegatecpm.com/xiedchkt?key=56bb4992d3fac02fe4ed2b9ac12a121d',
+        reward: 0.30,
+    },
+    {
+        id: 'cpm-ad-5',
+        title: 'অফার (৫): সহজে আয় করুন',
+        adUrl: 'https://www.effectivegatecpm.com/t8295gzkm?key=370687f852c8e8eb9099cd160f2a80ae',
+        reward: 0.25,
+    },
+    {
+        id: 'cpm-ad-6',
+        title: 'অফার (৬): দৈনিক টাস্ক পূরণ করুন',
+        adUrl: 'https://www.effectivegatecpm.com/xiedchkt?key=56bb4992d3fac02fe4ed2b9ac12a121d',
+        reward: 0.25,
+    },
+    {
+        id: 'cpm-ad-7',
+        title: 'অফার (৭): কুইজ খেলে আয়',
+        adUrl: 'https://www.effectivegatecpm.com/t8295gzkm?key=370687f852c8e8eb9099cd160f2a80ae',
+        reward: 0.20,
+    },
+    {
+        id: 'cpm-ad-8',
+        title: 'অফার (৮): নতুন গেম!',
+        adUrl: 'https://www.effectivegatecpm.com/xiedchkt?key=56bb4992d3fac02fe4ed2b9ac12a121d',
+        reward: 0.20,
+    },
+    {
+        id: 'cpm-ad-9',
+        title: 'অফার (৯): ভিডিও দেখুন',
+        adUrl: 'https://www.effectivegatecpm.com/t8295gzkm?key=370687f852c8e8eb9099cd160f2a80ae',
+        reward: 0.15,
+    },
+    {
+        id: 'cpm-ad-10',
+        title: 'অফার (১০): ফাইনাল বোনাস',
+        adUrl: 'https://www.effectivegatecpm.com/xiedchkt?key=56bb4992d3fac02fe4ed2b9ac12a121d',
+        reward: 0.50,
+    },
+];
 
 export const users: User[] = [
   {

@@ -11,21 +11,19 @@ import type { VideoAd } from '@/lib/types';
 export default function ManageAds() {
     const { videoAds, setVideoAds } = useApp();
     const { toast } = useToast();
-    const [newAd, setNewAd] = useState({ title: '', reward: '', time: '' });
+    const [newAd, setNewAd] = useState({ title: '', reward: '', adUrl: '' });
 
     const handleSaveAd = () => {
-        const { title, reward, time } = newAd;
-        if (title && reward && time) {
+        const { title, reward, adUrl } = newAd;
+        if (title && reward && adUrl) {
             const ad: VideoAd = {
                 id: `ad-${Date.now()}`,
                 title,
                 reward: parseFloat(reward),
-                time: parseInt(time),
-                image: `https://picsum.photos/seed/${Date.now()}/400/225`,
-                imageHint: 'business tech'
+                adUrl: adUrl,
             };
             setVideoAds(prevAds => [ad, ...prevAds]);
-            setNewAd({ title: '', reward: '', time: '' });
+            setNewAd({ title: '', reward: '', adUrl: '' });
             toast({ title: 'Success', description: 'New ad has been published.' });
         } else {
             toast({ variant: 'destructive', title: 'Error', description: 'Please fill all fields.' });
@@ -45,20 +43,20 @@ export default function ManageAds() {
                 <PlusCircle className="text-blue-500" /> Add/Edit Video Ads
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white/5 p-6 rounded-2xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-6 rounded-2xl">
                 <div className="space-y-2">
-                    <label className="text-xs text-gray-500 uppercase ml-2">Video Title</label>
-                    <Input type="text" value={newAd.title} onChange={(e) => setNewAd({...newAd, title: e.target.value})} placeholder="e.g. Premium YouTube Ad" />
+                    <label className="text-xs text-gray-500 uppercase ml-2">Ad Title</label>
+                    <Input type="text" value={newAd.title} onChange={(e) => setNewAd({...newAd, title: e.target.value})} placeholder="e.g. Special Bonus Offer" />
                 </div>
                 <div className="space-y-2">
                     <label className="text-xs text-gray-500 uppercase ml-2">Reward ($)</label>
-                    <Input type="number" value={newAd.reward} onChange={(e) => setNewAd({...newAd, reward: e.target.value})} placeholder="e.g. 0.85" step="0.01" />
+                    <Input type="number" value={newAd.reward} onChange={(e) => setNewAd({...newAd, reward: e.target.value})} placeholder="e.g. 0.25" step="0.01" />
                 </div>
-                <div className="space-y-2">
-                    <label className="text-xs text-gray-500 uppercase ml-2">Time (Seconds)</label>
-                    <Input type="number" value={newAd.time} onChange={(e) => setNewAd({...newAd, time: e.target.value})} placeholder="e.g. 30" />
+                <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs text-gray-500 uppercase ml-2">Ad URL</label>
+                    <Input type="text" value={newAd.adUrl} onChange={(e) => setNewAd({...newAd, adUrl: e.target.value})} placeholder="https://..." />
                 </div>
-                <Button onClick={handleSaveAd} className="md:col-span-3 mt-2 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-base font-bold">Save Ad to System</Button>
+                <Button onClick={handleSaveAd} className="md:col-span-2 mt-2 h-12 bg-gradient-to-r from-blue-600 to-purple-600 text-base font-bold">Save Ad to System</Button>
             </div>
 
             <div className="mt-8">
@@ -68,7 +66,7 @@ export default function ManageAds() {
                         <div key={ad.id} className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10 group">
                             <div>
                                 <span className="font-bold text-blue-400">{ad.title}</span>
-                                <span className="ml-4 text-xs text-gray-500">${ad.reward.toFixed(2)} | {ad.time}s</span>
+                                <span className="ml-4 text-xs text-gray-500">${ad.reward.toFixed(2)}</span>
                             </div>
                             <Button onClick={() => handleDeleteAd(ad.id)} size="icon" variant="ghost" className="text-red-500 hover:bg-red-500/20">
                                 <Trash2 className="h-4 w-4" />

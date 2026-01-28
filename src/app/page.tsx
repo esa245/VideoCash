@@ -4,7 +4,6 @@ import UserHeader from '@/components/user/Header';
 import Hero from '@/components/user/Hero';
 import AuthForm from '@/components/auth/AuthForm';
 import Dashboard from '@/components/user/Dashboard';
-import TimerOverlay from '@/components/user/TimerOverlay';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
@@ -14,7 +13,7 @@ export default function Home() {
     return null; // Or a loading spinner
   }
 
-  const { isAuthenticated, showAuthForm, adTimer, isUserLoading } = context;
+  const { isAuthenticated, showAuthForm, isUserLoading } = context;
 
   const DashboardSkeleton = () => (
     <div className="container mx-auto px-0 md:px-6 py-8">
@@ -47,7 +46,6 @@ export default function Home() {
           )}
         </div>
       </div>
-      {adTimer.active && <TimerOverlay />}
     </>
   );
 }

@@ -2,13 +2,11 @@ export type VideoAd = {
   id: string;
   title: string;
   reward: number;
-  time: number;
-  image: string;
-  imageHint: string;
+  adUrl: string;
 };
 
 export type User = {
-  id: string;
+  id:string;
   name?: string | null;
   email: string;
   balance: number;
