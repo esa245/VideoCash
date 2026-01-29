@@ -1,8 +1,64 @@
 'use client'
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Lock } from 'lucide-react';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Lock, Gift } from 'lucide-react';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+
+function InitialRecharge() {
+    const { currentUser, requestInitialRecharge } = useApp();
+    const [mobileNumber, setMobileNumber] = useState('');
+    const { toast } = useToast();
+    
+    if (!currentUser || currentUser.initialRechargeClaimed) {
+        return null;
+    }
+
+    const handleClaim = () => {
+        if(mobileNumber.length >= 10 && /^\d+$/.test(mobileNumber)) {
+            requestInitialRecharge(mobileNumber);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Invalid Number',
+                description: 'Please enter a valid mobile number.',
+            });
+        }
+    }
+
+    return (
+        <Card className="max-w-lg w-full bg-white/5 backdrop-blur-xl border-white/10 p-8 rounded-3xl text-center border-primary">
+            <CardHeader className="flex flex-col items-center p-0 pb-6">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-primary/10 border border-primary/20">
+                    <Gift className="text-2xl text-primary" />
+                </div>
+                <CardTitle className="text-2xl font-bold">First Time Bonus</CardTitle>
+                <CardDescription className="text-gray-400">
+                    Get 10 Taka free mobile recharge on your first day!
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+                <div className="space-y-4">
+                    <Input 
+                        placeholder="Enter Your Mobile Number"
+                        value={mobileNumber}
+                        onChange={(e) => setMobileNumber(e.target.value)}
+                        className="text-center h-12 text-lg bg-white/5"
+                        type="tel"
+                    />
+                    <Button 
+                        onClick={handleClaim}
+                        className="w-full bg-primary hover:bg-primary/90 py-4 h-auto rounded-xl font-bold text-lg"
+                    >
+                        Claim 10 Taka Recharge
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function WithdrawView() {
     const { currentUser, settings } = useApp();
@@ -11,7 +67,8 @@ export default function WithdrawView() {
     const canWithdraw = currentUser.balance >= settings.minWithdrawal;
 
     return (
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-8">
+            <InitialRecharge />
             <Card className="max-w-lg w-full bg-white/5 backdrop-blur-xl border-white/10 p-8 rounded-3xl text-center">
                 <CardHeader className="flex flex-col items-center">
                     <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 border ${canWithdraw ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
@@ -20,12 +77,10 @@ export default function WithdrawView() {
                     <h3 className="text-2xl font-bold mb-2">
                         {canWithdraw ? 'Withdrawal Unlocked' : 'Withdrawal Locked'}
                     </h3>
-                    <p className="text-gray-400 mb-6 font-bold">
-                        {canWithdraw 
+                    <p className="text-gray-400 mb-6" dangerouslySetInnerHTML={{__html: canWithdraw 
                             ? 'You have reached the minimum withdrawal amount.'
-                            : `You need at least <span class="text-white">$${settings.minWithdrawal.toFixed(2)}</span> to withdraw.`
-                        }
-                    </p>
+                            : `You need at least <span class="text-white font-bold">$${settings.minWithdrawal.toFixed(2)}</span> to withdraw.`
+                        }}/>
                 </CardHeader>
                 <CardContent>
                      <div className="space-y-4 mb-8 text-left">

@@ -16,6 +16,7 @@ export type User = {
   referralCode: string;
   referredBy: string | null;
   referralsCount: number;
+  initialRechargeClaimed?: boolean;
 };
 
 export type AppSettings = {
@@ -23,3 +24,14 @@ export type AppSettings = {
   dailyBonus: number;
   referralBonus: number;
 };
+
+export type WithdrawalRequest = {
+  id: string;
+  userId: string;
+  userEmail: string;
+  amount: number;
+  type: 'Recharge' | 'Withdrawal';
+  accountNumber: string;
+  status: 'Pending' | 'Completed' | 'Rejected';
+  createdAt: number;
+}

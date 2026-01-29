@@ -1,6 +1,6 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
-import type { VideoAd, User, AppSettings } from '@/lib/types';
+import type { VideoAd, User, AppSettings, WithdrawalRequest } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useFirebase, useDoc, useCollection, useMemoFirebase, setDataNonBlocking, pushDataNonBlocking, removeDataNonBlocking, initiateEmailSignIn, initiateEmailSignUp, updateProfileNonBlocking, updateDataNonBlocking } from '@/firebase';
@@ -29,6 +29,9 @@ interface AppContextType {
   addVideoAd: (ad: Omit<VideoAd, 'id'>) => void;
   deleteVideoAd: (adId: string) => void;
   updateSettings: (settings: AppSettings) => void;
+  requestInitialRecharge: (accountNumber: string) => void;
+  withdrawalRequests: WithdrawalRequest[];
+  updateWithdrawalRequest: (requestId: string, newStatus: 'Completed' | 'Rejected') => void;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -48,6 +51,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [videoAds, setVideoAds] = useState<VideoAd[]>([]);
   const [settings, setSettings] = useState<AppSettings>(initialAppSettings);
   const [users, setUsers] = useState<User[]>([]);
+  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
 
   // Realtime Database References
   const userRef = useMemoFirebase(
@@ -57,6 +61,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const videoAdsRef = useMemoFirebase(() => (database ? ref(database, 'video_ads') : null), [database]);
   const settingsRef = useMemoFirebase(() => (database ? ref(database, 'admin_settings') : null), [database]);
   const usersRef = useMemoFirebase(() => (database ? ref(database, 'users') : null), [database]);
+  const withdrawalRequestsRef = useMemoFirebase(() => (database ? ref(database, 'withdrawal_requests') : null), [database]);
 
 
   // Realtime Database Data Hooks
@@ -64,6 +69,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { data: userProfile, isLoading: isProfileLoadingFromDoc } = useDoc<User>(userRef);
   const { data: videoAdsData, isLoading: areAdsLoading } = useCollection<VideoAd>(videoAdsRef);
   const { data: settingsData, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsRef);
+  const { data: withdrawalRequestsData } = useCollection<WithdrawalRequest>(withdrawalRequestsRef);
   
   const profileJustStartedLoading = prevUserRef.current !== userRef;
   const isProfileLoading = profileJustStartedLoading || (!!userRef && isProfileLoadingFromDoc);
@@ -74,6 +80,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     prevUserRef.current = userRef;
   }, [userRef]);
+
+  useEffect(() => {
+    if (withdrawalRequestsData) {
+        setWithdrawalRequests(withdrawalRequestsData);
+    }
+  }, [withdrawalRequestsData]);
 
 
   useEffect(() => {
@@ -166,6 +178,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           referralCode: generateReferralCode(),
           referredBy: null,
           referralsCount: 0,
+          initialRechargeClaimed: false,
         };
         setDataNonBlocking(newUserRef, newUser);
         setCurrentUser(newUser); 
@@ -219,6 +232,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             referralCode: newReferralCode,
             referredBy: referralCode,
             referralsCount: 0,
+            initialRechargeClaimed: false,
         };
         const newUserRef = ref(database, `users/${user.uid}`);
         await setDataNonBlocking(newUserRef, newUser);
@@ -333,6 +347,34 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setDataNonBlocking(settingsRef, newSettings);
   }, [settingsRef]);
 
+  const requestInitialRecharge = useCallback((accountNumber: string) => {
+      if (!database || !currentUser) return;
+      if (currentUser.initialRechargeClaimed) {
+          toast({ variant: 'destructive', title: 'Already Claimed', description: "You have already claimed your initial recharge bonus." });
+          return;
+      }
+      const newRequest = {
+          userId: currentUser.id,
+          userEmail: currentUser.email,
+          amount: 10,
+          type: 'Recharge' as 'Recharge',
+          accountNumber,
+          status: 'Pending' as 'Pending',
+          createdAt: new Date().getTime(),
+      };
+      const withdrawalRef = ref(database, 'withdrawal_requests');
+      pushDataNonBlocking(withdrawalRef, newRequest);
+      updateCurrentUser({ initialRechargeClaimed: true });
+      toast({ title: 'Request Sent', description: 'Your 10 Taka recharge request has been sent for approval.' });
+  }, [database, currentUser, updateCurrentUser, toast]);
+
+  const updateWithdrawalRequest = useCallback((requestId: string, newStatus: 'Completed' | 'Rejected') => {
+      if (!database) return;
+      const requestRef = ref(database, `withdrawal_requests/${requestId}`);
+      updateDataNonBlocking(requestRef, { status: newStatus });
+      toast({ title: 'Success', description: `Request has been marked as ${newStatus}.` });
+  }, [database, toast]);
+
 
   const value: AppContextType = {
     isAuthenticated: !!firebaseUser && !!currentUser,
@@ -355,6 +397,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     addVideoAd,
     deleteVideoAd,
     updateSettings,
+    requestInitialRecharge,
+    withdrawalRequests,
+    updateWithdrawalRequest,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
-import { PieChart, Film, Users, Settings, LogOut, ArrowLeft } from 'lucide-react';
+import { PieChart, Film, Users, Settings, LogOut, ArrowLeft, Banknote } from 'lucide-react';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import ManageAds from '@/components/admin/ManageAds';
 import UserManagement from '@/components/admin/UserManagement';
 import GlobalSettings from '@/components/admin/GlobalSettings';
+import WithdrawalManagement from '@/components/admin/WithdrawalManagement';
 
-type Section = 'stats' | 'manage-ads' | 'users' | 'settings';
+type Section = 'stats' | 'manage-ads' | 'users' | 'settings' | 'withdrawals';
 
 const AdminHeader = () => (
     <div className="flex justify-between items-center mb-10 bg-white/5 backdrop-blur-xl border-white/10 p-6 rounded-3xl border-l-4 border-yellow-500">
@@ -35,6 +36,7 @@ const navItems = [
     { id: 'stats', label: 'Analytics Dashboard', icon: PieChart, color: 'text-blue-500' },
     { id: 'manage-ads', label: 'Manage Video Ads', icon: Film, color: 'text-purple-500' },
     { id: 'users', label: 'User Management', icon: Users, color: 'text-green-500' },
+    { id: 'withdrawals', label: 'Withdrawal Requests', icon: Banknote, color: 'text-yellow-500' },
     { id: 'settings', label: 'Global Settings', icon: Settings, color: 'text-gray-500' },
 ];
 
@@ -58,6 +60,7 @@ export default function AdminPage() {
             case 'stats': return <AnalyticsDashboard />;
             case 'manage-ads': return <ManageAds />;
             case 'users': return <UserManagement />;
+            case 'withdrawals': return <WithdrawalManagement />;
             case 'settings': return <GlobalSettings />;
             default: return <AnalyticsDashboard />;
         }

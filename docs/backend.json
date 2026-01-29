@@ -50,6 +50,10 @@
         "referralsCount": {
           "type": "number",
           "description": "Number of users referred."
+        },
+        "initialRechargeClaimed": {
+          "type": "boolean",
+          "description": "Whether the user has claimed their initial mobile recharge bonus."
         }
       },
       "required": [
@@ -108,6 +112,54 @@
         "dailyBonus",
         "referralBonus"
       ]
+    },
+    "WithdrawalRequest": {
+      "title": "WithdrawalRequest",
+      "type": "object",
+      "description": "Represents a user's request for withdrawal or recharge.",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "userEmail": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Recharge",
+            "Withdrawal"
+          ]
+        },
+        "accountNumber": {
+          "type": "string",
+          "description": "Mobile number for recharge or payment account number."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Pending",
+            "Completed",
+            "Rejected"
+          ]
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Timestamp of the request."
+        }
+      },
+      "required": [
+        "userId",
+        "userEmail",
+        "amount",
+        "type",
+        "accountNumber",
+        "status",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -138,6 +190,14 @@
         "$ref": "#/backend/entities/AdminSettings"
       },
       "description": "Stores global admin settings."
+    },
+    "withdrawal_requests": {
+      "$requestId": {
+        "schema": {
+          "$ref": "#/backend/entities/WithdrawalRequest"
+        },
+        "description": "Stores user withdrawal and recharge requests."
+      }
     }
   }
 }
