@@ -22,6 +22,13 @@
           "type": "number",
           "description": "Number of ads watched today."
         },
+        "lastAdReset": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Timestamp of the last ad count reset."
+        },
         "lastDailyClaim": {
           "type": [
             "string",

@@ -118,6 +118,40 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     if (firebaseUser && database) {
       if (userProfile) {
+        // --- AD RESET LOGIC ---
+        const now = new Date();
+        const lastResetTimestamp = userProfile.lastAdReset || 0;
+        const lastResetDate = new Date(lastResetTimestamp);
+        const today6am = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6, 0, 0, 0);
+        const today6pm = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 0, 0, 0);
+
+        let lastResetPoint: Date;
+        if (now >= today6pm) {
+            lastResetPoint = today6pm;
+        } else if (now >= today6am) {
+            lastResetPoint = today6am;
+        } else {
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterday6pm = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 18, 0, 0, 0);
+            lastResetPoint = yesterday6pm;
+        }
+
+        if (userRef && lastResetDate < lastResetPoint) {
+            const updates: Partial<User> = {};
+            if (userProfile.adsWatchedToday > 0) {
+                updates.adsWatchedToday = 0;
+            }
+            if (lastResetTimestamp === 0 || userProfile.adsWatchedToday > 0) {
+                updates.lastAdReset = now.getTime();
+            }
+
+            if (Object.keys(updates).length > 0) {
+                updateDataNonBlocking(userRef, updates);
+            }
+        }
+        // --- END AD RESET LOGIC ---
+
         setCurrentUser(userProfile);
       } else {
         const newUserRef = ref(database, `users/${firebaseUser.uid}`);
@@ -127,6 +161,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           email: firebaseUser.email!,
           balance: 0,
           adsWatchedToday: 0,
+          lastAdReset: new Date().getTime(),
           lastDailyClaim: null,
           referralCode: generateReferralCode(),
           referredBy: null,
@@ -145,7 +180,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setCurrentUser(null);
       setIsAdmin(false);
     }
-  }, [firebaseUser, userProfile, isUserLoading, database]);
+  }, [firebaseUser, userProfile, isUserLoading, database, userRef]);
 
   const updateCurrentUser = useCallback((userData: Partial<User>) => {
     if (userRef) {
@@ -179,6 +214,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             email: user.email!,
             balance: 0,
             adsWatchedToday: 0,
+            lastAdReset: new Date().getTime(),
             lastDailyClaim: null,
             referralCode: newReferralCode,
             referredBy: referralCode,

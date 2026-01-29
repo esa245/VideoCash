@@ -11,6 +11,7 @@ export type User = {
   email: string;
   balance: number;
   adsWatchedToday: number;
+  lastAdReset: number | null;
   lastDailyClaim: string | null; // ISO date string yyyy-mm-dd
   referralCode: string;
   referredBy: string | null;
