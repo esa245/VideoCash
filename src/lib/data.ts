@@ -103,4 +103,5 @@ export const appSettings: AppSettings = {
   minWithdrawal: 100,
   dailyBonus: 0.50,
   referralBonus: 1.00,
+  initialRechargeEnabled: true,
 };

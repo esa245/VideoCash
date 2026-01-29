@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import type { AppSettings } from '@/lib/types';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 export default function GlobalSettings() {
     const { settings: globalSettings, updateSettings } = useApp();
@@ -62,7 +64,17 @@ export default function GlobalSettings() {
                     />
                 </div>
             </div>
-            <Button onClick={handleUpdate} className="bg-green-600 hover:bg-green-700 px-10 py-3 h-auto rounded-xl font-bold">Update Settings</Button>
+            <div className="flex items-center space-x-3 pt-4">
+                <Switch
+                    id="initialRechargeEnabled"
+                    checked={localSettings.initialRechargeEnabled}
+                    onCheckedChange={(checked) =>
+                    setLocalSettings((s) => ({ ...s, initialRechargeEnabled: checked }))
+                    }
+                />
+                <Label htmlFor="initialRechargeEnabled" className="text-base text-gray-300">Enable Initial 10 Taka Recharge Bonus</Label>
+            </div>
+            <Button onClick={handleUpdate} className="bg-green-600 hover:bg-green-700 px-10 py-3 h-auto rounded-xl font-bold mt-4">Update Settings</Button>
         </Card>
     );
 }

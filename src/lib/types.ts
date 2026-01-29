@@ -23,6 +23,7 @@ export type AppSettings = {
   minWithdrawal: number;
   dailyBonus: number;
   referralBonus: number;
+  initialRechargeEnabled: boolean;
 };
 
 export type WithdrawalRequest = {

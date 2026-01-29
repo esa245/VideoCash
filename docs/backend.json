@@ -105,12 +105,17 @@
         "referralBonus": {
           "type": "number",
           "description": "Bonus amount for a successful referral."
+        },
+        "initialRechargeEnabled": {
+          "type": "boolean",
+          "description": "Whether the initial mobile recharge bonus is enabled."
         }
       },
       "required": [
         "minimumWithdrawal",
         "dailyBonus",
-        "referralBonus"
+        "referralBonus",
+        "initialRechargeEnabled"
       ]
     },
     "WithdrawalRequest": {

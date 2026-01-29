@@ -1,35 +1,45 @@
 'use client';
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useApp } from '@/contexts/AppContext';
 import { Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function AdminLoginPage() {
-  const email = 'mdesaalli74@gmail.com';
-  const password = 'mdesa1111';
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const { adminLogin } = useApp();
   const router = useRouter();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const handleLogin = async () => {
-      const success = await adminLogin(email, password);
-      if (success) {
-        router.push('/admin');
-      } else {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    if (email !== 'mdesaalli74@gmail.com') {
         toast({
-          variant: 'destructive',
-          title: 'Login Failed',
-          description: 'Automatic login failed. Please check credentials.',
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: 'You are not authorized to access this panel.',
         });
-      }
-    };
-    if (adminLogin) {
-        handleLogin();
+        setLoading(false);
+        return;
     }
-  }, [adminLogin, router, toast]);
+    const success = await adminLogin(email, password);
+    if (success) {
+      router.push('/admin');
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: 'Please check your credentials and try again.',
+      });
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
@@ -41,10 +51,33 @@ export default function AdminLoginPage() {
           <CardDescription className="text-gray-500 italic">Master Control Panel - Secure Access</CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="flex flex-col items-center justify-center space-y-4 py-8">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                <p className="text-gray-400">Attempting secure login...</p>
-            </div>
+            <form onSubmit={handleLogin} className="space-y-6">
+                <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Admin Email</label>
+                    <Input
+                        type="email"
+                        placeholder="admin@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full p-4 h-14 bg-white/5 rounded-xl border border-white/10"
+                        required
+                    />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Password</label>
+                    <Input
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full p-4 h-14 bg-white/5 rounded-xl border border-white/10"
+                        required
+                    />
+                </div>
+                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-14 rounded-xl font-bold text-lg" disabled={loading}>
+                    {loading ? <Loader2 className="animate-spin" /> : 'Secure Login'}
+                </Button>
+            </form>
         </CardContent>
       </Card>
     </div>

@@ -8,11 +8,11 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 function InitialRecharge() {
-    const { currentUser, requestInitialRecharge } = useApp();
+    const { currentUser, requestInitialRecharge, settings } = useApp();
     const [mobileNumber, setMobileNumber] = useState('');
     const { toast } = useToast();
     
-    if (!currentUser || currentUser.initialRechargeClaimed) {
+    if (!settings.initialRechargeEnabled || !currentUser || currentUser.initialRechargeClaimed) {
         return null;
     }
 
