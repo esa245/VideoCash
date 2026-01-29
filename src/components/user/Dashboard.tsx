@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Video, Banknote, Gift, Headset, Users } from 'lucide-react';
 import { format } from 'date-fns';
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import VideosView from './VideosView';
 import WithdrawView from './WithdrawView';
 import SupportView from './SupportView';
@@ -90,18 +90,23 @@ function DailyBonusCard() {
 }
 
 const AdBanner = () => {
+  const adRef = useRef<HTMLModElement>(null);
+
   useEffect(() => {
-    try {
-      // @ts-ignore
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.error("Adsense error:", e);
+    if (adRef.current?.children.length === 0) {
+        try {
+          // @ts-ignore
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) {
+          console.error("Adsense error:", e);
+        }
     }
   }, []);
 
   return (
     <div className="my-8">
       <ins
+        ref={adRef}
         className="adsbygoogle"
         style={{ display: 'block' }}
         data-ad-client="ca-pub-9329824749039502"
