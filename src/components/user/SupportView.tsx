@@ -3,7 +3,7 @@ import { useApp } from '@/contexts/AppContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { DollarSign, Send } from 'lucide-react';
+import { DollarSign, Send, Download } from 'lucide-react';
 
 
 // A simple utility to get initials from a name
@@ -23,6 +23,7 @@ export default function SupportView() {
     if (!currentUser) return null;
 
     const telegramLink = "https://t.me/+BwVCGF5qYWY5NDM1";
+    const apkUrl = "https://www.upload-apk.com/hKi15XBhqbz6cX2";
 
     return (
         <div className="flex flex-col items-center gap-8">
@@ -55,6 +56,17 @@ export default function SupportView() {
                             className="w-full max-w-sm mx-auto bg-sky-500 hover:bg-sky-600 py-4 h-auto rounded-xl font-bold text-lg"
                         >
                             <Send className="mr-2 h-5 w-5" /> Join Telegram Support
+                        </Button>
+                    </div>
+
+                    <div className="text-center pt-8 border-t border-white/10">
+                         <h3 className="text-xl font-bold mb-2">Download App</h3>
+                        <p className="text-gray-400 mb-4">আমাদের অ্যান্ড্রয়েড অ্যাপটি ডাউনলোড করুন।</p>
+                        <Button 
+                            onClick={() => window.open(apkUrl, '_blank')} 
+                            className="w-full max-w-sm mx-auto bg-green-600 hover:bg-green-700 py-4 h-auto rounded-xl font-bold text-lg"
+                        >
+                            <Download className="mr-2 h-5 w-5" /> Download APK
                         </Button>
                     </div>
                 </CardContent>
