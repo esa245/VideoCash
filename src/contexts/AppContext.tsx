@@ -153,6 +153,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             const updates: Partial<User> = {};
             if (userProfile.adsWatchedToday > 0) {
                 updates.adsWatchedToday = 0;
+                updates.watchedAdIdsToday = [];
             }
             if (lastResetTimestamp === 0 || userProfile.adsWatchedToday > 0) {
                 updates.lastAdReset = now.getTime();
@@ -179,6 +180,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           referredBy: null,
           referralsCount: 0,
           initialRechargeClaimed: false,
+          watchedAdIdsToday: [],
         };
         setDataNonBlocking(newUserRef, newUser);
         setCurrentUser(newUser); 
@@ -233,6 +235,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             referredBy: referralCode,
             referralsCount: 0,
             initialRechargeClaimed: false,
+            watchedAdIdsToday: [],
         };
         const newUserRef = ref(database, `users/${user.uid}`);
         await setDataNonBlocking(newUserRef, newUser);
@@ -281,11 +284,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const addReward = useCallback((reward: number) => {
+  const addReward = useCallback((reward: number, adId: string) => {
     if (!currentUser) return;
     const updatedUser = {
       balance: currentUser.balance + reward,
       adsWatchedToday: currentUser.adsWatchedToday + 1,
+      watchedAdIdsToday: [...(currentUser.watchedAdIdsToday || []), adId],
     };
     updateCurrentUser(updatedUser);
     toast({ title: 'Reward!', description: `Successfully credited: $${reward.toFixed(2)}` });
@@ -297,8 +301,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       toast({ variant: 'destructive', title: "Today's limit reached!", description: "You have already watched 10 videos today. Come back tomorrow." });
       return;
     }
+    if(currentUser.watchedAdIdsToday && currentUser.watchedAdIdsToday.includes(ad.id)) {
+        toast({ variant: 'destructive', title: "Already Watched", description: "You have already watched this ad in the current cycle." });
+        return;
+    }
     window.open(ad.adUrl, '_blank');
-    addReward(ad.reward);
+    addReward(ad.reward, ad.id);
   };
 
   const claimDailyBonus = () => {

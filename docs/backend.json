@@ -54,6 +54,13 @@
         "initialRechargeClaimed": {
           "type": "boolean",
           "description": "Whether the user has claimed their initial mobile recharge bonus."
+        },
+        "watchedAdIdsToday": {
+          "type": "array",
+          "description": "A list of ad IDs that the user has watched in the current 12-hour cycle.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [

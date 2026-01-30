@@ -17,6 +17,7 @@ export type User = {
   referredBy: string | null;
   referralsCount: number;
   initialRechargeClaimed?: boolean;
+  watchedAdIdsToday?: string[];
 };
 
 export type AppSettings = {
