@@ -23,7 +23,7 @@ export default function SupportView() {
     if (!currentUser) return null;
 
     const telegramLink = "https://t.me/+BwVCGF5qYWY5NDM1";
-    const apkUrl = "https://www.upload-apk.com/hKi15XBhqbz6cX2";
+    const apkUrl = "https://t.me/c/3730869841/6";
 
     return (
         <div className="flex flex-col items-center gap-8">
